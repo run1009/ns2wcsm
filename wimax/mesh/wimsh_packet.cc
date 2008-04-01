@@ -113,15 +113,16 @@ WimshBurst::WimshBurst (const WimshBurst& obj)
 	if ( obj.mshDsch_ ) mshDsch_ = new WimshMshDsch (*obj.mshDsch_);
 	else mshDsch_ = 0;
 
+	//obj.mshNent_ = (WimshMshNent*)1;
 	if ( obj.mshNcfg_ ) mshNcfg_ = new WimshMshNcfg (*obj.mshNcfg_);
 	else mshNcfg_ = 0;
 	
 	if ( obj.mshNent_ ) mshNent_ = new WimshMshNent (*obj.mshNent_);
 	else mshNent_ = 0;
-	printf("in wimshburst\n");
-	//if ( obj.mshCsch_ ) mshCsch_ = new WimshMshCsch (*obj.mshCsch_);
-	//else mshCsch_ = 0;
-	printf("out\n");
+	//printf("in wimshburst\n");
+	if ( obj.mshCsch_ ) mshCsch_ = new WimshMshCsch (*obj.mshCsch_);
+	else mshCsch_ = 0;
+	//printf("out\n");
 }
 
 /*

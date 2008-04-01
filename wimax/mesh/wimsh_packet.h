@@ -498,7 +498,7 @@ private:
 public:
 	//! Build an empty burst of PDUs.
 	WimshBurst () {
-		error_ = false; size_ = 0; mshDsch_ = 0; mshNcfg_ = 0; mshNent_ = 0;
+	  error_ = false; size_ = 0; mshDsch_ = 0; mshNcfg_ = 0; mshNent_ = 0; mshCsch_ = 0;
 		profile_ = wimax::QPSK_1_2; type_ = wimax::DATA; }
 	//! Destroy everything ;)
 	~WimshBurst ();
