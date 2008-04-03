@@ -39,6 +39,8 @@ WimshCoordinator::WimshCoordinator (WimshMac* m) : mac_(m), timer_ (this)
 	nextNcfgFrame_ = NEVER;
 	nextNentSlot_  = 0;      // never changed
 	nextNentFrame_ = NEVER;
+	nextCschSlot_ = 0;
+	nextCschFrame_ = NEVER;
 }
 
 
@@ -127,7 +129,16 @@ WimshCoordinator::handle ()
 
 		// pass it to the MAC layer
 		mac_->opportunity (nent);
+	//3. it is time to transmit an MSH-CSCH message
+	} else if ( curslot == nextCschSlot_ && mac_->frame() == nextCschFrame_ ) {
+	  electionCsch();
+	  
+	  timer_.start(phyMib->controlSlotDuration());
 
+	  //TODO:
+	  WimshMshCsch* csch = new WimshMshCsch;
+
+	  mac_->opportunity(csch);
 	// 4. the control frame ended
 	} else  if ( curslot == C ) {                                        
 		// set the timer to expire at the beginning of the next frame
@@ -154,6 +165,8 @@ WimshCoordinator::handle ()
 			slot = nextNentSlot_;
 		} else if ( nextNcfgFrame_ == mac_->frame() ) {
 			slot = nextNcfgSlot_;
+		} else if ( nextCschFrame_ == nac_->frame() ) {
+		  slot = nextCschSlot_;
 		}
 
 		// set the timer to expire at the end of this control frame

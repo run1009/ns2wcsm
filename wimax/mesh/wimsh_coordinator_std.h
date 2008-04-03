@@ -144,6 +144,8 @@ public:
 	//! Manage MSH-NCFG message from the MAC.
 	void recvMshNcfg (WimshMshNcfg* ncfg, double txtime = 0);
 
+	void recvMshCsch (WimshMshCsch* csch, double txtime = 0);
+
 	//! Initialiaze the internal data structure.
 	void initialize();
 
@@ -162,6 +164,8 @@ protected:
 	void electionNcfg ();
 	//! Election procedure called by handle().
 	void electionNent ();
+
+	void electionCsch ();
 	
 	//! Fill the IE about myself with scheduling information.
 	void fillSelf (WimshMshDsch* dsch);
@@ -227,6 +231,8 @@ private:
 	unsigned int currentCtrlSlotDsch(double txtime = 0);
 	//! Compute the MSH-NCFG slot from the dawn of time.
 	unsigned int currentCtrlSlotNcfg(double txtime = 0);
+
+	unsigned int currentCtrlSlotCsch(double txtime = 0);
 
 };
 

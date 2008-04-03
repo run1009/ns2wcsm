@@ -126,8 +126,8 @@ WimshMacMib::command (int argc, const char*const* argv)
 	  avlChannels.push_back(chan);
 	  return TCL_OK;
 	} /* jpyu */ else if(argc == 2 && strcmp(argv[1],"dump") == 0) {
-	  FILE *f = fopen("channel","w+");
-	  dump(f);
+	  //FILE *f = fopen("channel","w+");
+	  dump(stderr);
 	  return TCL_OK;
 	} else if(argc == 3 && strcmp(argv[1],"HRthreshold") == 0) {
 	    HRthreshold_ = atoi(argv[2]);
@@ -720,6 +720,7 @@ WimshMac::opportunity (WimshMshDsch* dsch)
 	phy_[0]->sendBurst (burst);
 }
 
+
 void
 WimshMac::opportunity (WimshMshNcfg* ncfg)
 {
@@ -1066,7 +1067,31 @@ WimshMac::transmit (unsigned int range, WimaxNodeId dst, unsigned int channel)
 
 void 
 BSWimshMac::recvMshCsch(WimshMshCsch* csch, double txtime) {
+  assert (initialized );
+  if(csch->flag_ == false) {
+    delete csch;
+  } else {
+    
+
+  }
+}
+
+
+void 
+BSWimshMac::opportunity(WimshMshCsch* csch)
+{
+  assert ( initialized );
+
+  WimshBurst* burst = new WimshBurst;
+
+  burst->addMshCsch (csch);
   
+  hLastCsch_ = NOW;
+  //do the work that BS shall allocate the minislot to SS
+
+  setControlChannel(wimax::TX);
+
+  phy_[0]->sendBurst (burst);
 }
 
 int
@@ -1084,6 +1109,24 @@ BSWimshMac::command(int argc,const char*const* argv) {
 void 
 SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
 
+}
+
+void
+SSWimshMac::opportunity(WimshMshCsch* csch)
+{
+  assert( initialized );
+
+  hLastCsch_ = NOW;
+
+
+  WimshBurst* burst = new WimshBurst;
+
+  burst->addMshCsch (csch);
+  
+
+  setControlChannel (wimax::TX);
+
+  phy_[0]->sendBurst (burst);
 }
 
 int 

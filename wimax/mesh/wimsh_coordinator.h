@@ -29,6 +29,7 @@ class WimshMshDsch;
 class WimshMshNcfg;
 class WimshMshNent;
 class WimshPhyMib;
+class WimshMshCsch;
 
 /*
  *
@@ -68,6 +69,10 @@ protected:
 	//! Frame number of the next opportunity to send an MSH-NENT message.
 	unsigned int nextNentFrame_;
 
+
+
+	unsigned int nextCschSlot_;
+	unsigned int nextCschFrame_;
 public:
 	//! Create the coordinator.
 	WimshCoordinator (WimshMac* m);
@@ -78,6 +83,7 @@ public:
 	virtual void recvMshDsch (WimshMshDsch* dsch, double txtime = 0) = 0;
 	virtual void recvMshNcfg (WimshMshNcfg* ncfg, double txtime = 0) { }
 
+	virtual void recvMshCsch (WimshMshCsch* csch, double txtime = 0) { }
 	//! Timer handler.
 	/*!
 	  This handler is called in any of the following events:
@@ -101,6 +107,9 @@ protected:
 	virtual void electionNcfg () = 0;
 	//! Election procedure called by handle().
 	virtual void electionNent () = 0;
+
+	virtual void electionCsch () = 0;
+
 
 	//! Fill the IE about myself in an MSH-DSCH message.
 	virtual void fillSelf (WimshMshDsch* dsch) = 0;
@@ -158,6 +167,7 @@ public:
 	//! Ignore MSH-NCFG message from the MAC.
 	void recvMshNcfg (WimshMshNcfg* ncfg, double txtime = 0) { }
 
+	void recvMshCsch (WimshMshCsch* csch, double txtime = 0) { }
 	//! Initialiaze the internal data structure. Do nothing
 	void initialize() { };
 
@@ -179,7 +189,8 @@ protected:
 	void electionNcfg () {};
 	//! Election procedure called by handle().
 	void electionNent () {};
-		
+	
+	void electionCsch () {};
 	//! Fill the IE about myself with junk information.
 	void fillSelf (WimshMshDsch* dsch);
 

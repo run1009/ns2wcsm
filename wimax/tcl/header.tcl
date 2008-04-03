@@ -293,7 +293,7 @@ proc create_topology {} {
       -topoInstance $topo_unused \
       -agentTrace OFF \
       -routerTrace OFF \
-      -macTrace ON \
+      -macTrace OFF \
       -movementTrace OFF \
       -channel $chan_unused
 

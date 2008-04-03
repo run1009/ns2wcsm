@@ -358,6 +358,7 @@ public:
 	void recvMshNcfg (WimshMshNcfg* ncfg, double txtime);
 	//! Receive an MSH-NENT.
 	void recvMshNent (WimshMshNent* nent, double txtime);
+
 	
 	// this function must be implemented,or the compiler will display vtable for XXXX
 	virtual void recvMshCsch (WimshMshCsch*,double) { }
@@ -377,6 +378,8 @@ public:
 	void opportunity (WimshMshNcfg* ncfg);
 	//! Receive a partial MSH-NENT from the coordinator and send it to the PHY.
 	void opportunity (WimshMshNent* nent);
+
+	virtual void opportunity (WimshMshCsch* csch) { }
 
 	//! Get the NodeID.
 	WimaxNodeId nodeId () { return nodeId_; }
@@ -504,6 +507,8 @@ class BSWimshMac : public WimshMac {
  ~BSWimshMac() { }
 
   void recvMshCsch(WimshMshCsch* csch,double txtime);
+
+  void opportunity(WimshMshCsch* csch);
   //bs cann't receive cscf
  protected:
   virtual int command (int argc, const char*const* argv);
@@ -516,6 +521,9 @@ class SSWimshMac : public WimshMac {
 
   //void recvMshCscf(WimshMshCscf* cscf,double txtime);
   void recvMshCsch(WimshMshCsch* csch,double txtime);
+
+
+  void opportunity(WimshMshCsch* csch);
  protected:
   virtual int command (int argc, const char*const* argv);
  private:

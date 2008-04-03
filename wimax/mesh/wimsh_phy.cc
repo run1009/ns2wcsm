@@ -215,6 +215,8 @@ WimshPhy::sendBurst (WimshBurst* burst)
 		burst->txtime() += phyMib_->symShortPreamble() * phyMib_->symDuration ();
 	} else if ( burst->type() == wimax::MSHNENT ) {
 		burst->txtime() += phyMib_->symShortPreamble() * phyMib_->symDuration ();
+	} else if ( burst->type() == wimax::MSHCSCH ) {
+	  	burst->txtime() += phyMib_->symShortPreamble() * phyMib_->symDuration();
 	} else {
 		abort();
 	}

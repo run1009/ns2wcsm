@@ -387,6 +387,10 @@ private:
   bool frameSchFlag;
   
   struct FlowEntry {
+    //----------------
+    //standard not included
+    int id;
+    //----------------
     unsigned upFlow;
     unsigned downFlow;
     //in bytes
@@ -397,9 +401,6 @@ public:
   WimshMshCsch() {
     // now it leaves blank
 
-  }
-  WimshMshCsch(const WimshMshCsch* obj) {
-    frame_num = obj->frame_num;
   }
     
   //int bytes
