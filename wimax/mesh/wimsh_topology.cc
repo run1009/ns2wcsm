@@ -543,4 +543,15 @@ WimshTopologySimple::TreeGenerate()
   Sequence[0] = 0; //bs don't need to request
   for(int i = 0;i < cschSequence.size();++i)
     Sequence[cschSequence[i]] = i + 1;
+
+  //pluge the edges that don't exist in tree
+  for(int i = 0; i < connectivity_.getRows(); ++i) {
+    for(int j = 0; j < connectivity_.getRows(); ++j) {
+      connectivity_.at(i,j) = 0;
+    }
+  }
+  for(int i = 1; i < parent.size(); ++i) {
+    connectivity_.at(i,parent[i]) = 1;
+    connectivity_at(parent[i],i) = 1;
+  }
 }

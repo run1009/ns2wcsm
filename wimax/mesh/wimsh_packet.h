@@ -385,7 +385,7 @@ private:
 
   //Frame schedule flag; true-schedule over two frames, false-sched.over single frame
   bool frameSchFlag;
-  
+public:
   struct FlowEntry {
     //----------------
     //standard not included
@@ -393,16 +393,20 @@ private:
     //----------------
     unsigned upFlow;
     unsigned downFlow;
+    int channel;
     //in bytes
     static unsigned size() { return 1;}
   };
+prviate:
   std::list<FlowEntry*> flowEntries;
 public:
   WimshMshCsch() {
     // now it leaves blank
 
   }
-    
+  
+  std::list<FlowEntry*> & getFlowEntries() { return flowEntries; }
+  unsigned int getFlowSE() { return flowScaleExponent; }
   //int bytes
   int size() { return (4 + flowEntries.size() ) ; }
   //TODO:size() more about

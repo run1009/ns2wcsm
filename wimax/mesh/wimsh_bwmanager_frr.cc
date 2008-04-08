@@ -231,6 +231,20 @@ WimshBwManagerFairRR::recvMshDsch (WimshMshDsch* dsch)
 	rcvRequests(dsch);
 }
 
+void 
+WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
+{
+  unsigned int flowSE = csch->getFlowSE();
+  std::list<WimshMshCsch::FlowEntry*> flow = csch->getFlowEntries();
+  std::list<WimshMshCsch::FlowEntry*>::iterator it = flow.begin();
+  for(;it != flow.end(); ++it) {
+    
+
+
+  }
+
+}
+
 void
 WimshBwManagerFairRR::rcvGrants (WimshMshDsch* dsch)
 {

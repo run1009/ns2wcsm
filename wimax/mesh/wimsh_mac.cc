@@ -891,7 +891,8 @@ WimshMac::recvBurst (WimshBurst* burst)
 
 	} else if ( burst->type() == wimax::MSHNENT ) {
 		if ( ! burst->error() ) recvMshNent (burst->mshNent(), burst->txtime());
-
+	} else if ( burst->type() == wimax::MSHCSCH ) {
+	  if( ! burst->error() ) recvMshCsch( burst->mshCsch(), burst->txtime());
 	//
 	// manage a data burst
 	//
@@ -1108,6 +1109,11 @@ BSWimshMac::command(int argc,const char*const* argv) {
 
 void 
 SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
+  assert ( initialized );
+  
+  coordinator_->recvMshCsch(csch,txtime);
+  bwmanager_->recvMshCsch(csch);
+  forwarding_->recvMshCsch(csch);
 
 }
 

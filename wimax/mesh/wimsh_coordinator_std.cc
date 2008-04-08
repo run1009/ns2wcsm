@@ -277,6 +277,12 @@ WimshCoordinatorStandard::recvMshDsch (WimshMshDsch *dsch, double txtime)
    }
 }
 
+void 
+WimshCoordinatorStandard::recvMshCsch (WimshMshCsch *csch, double txtime)
+{
+  //leave it blank
+}
+
 void
 WimshCoordinatorStandard::recvMshNcfg (WimshMshNcfg *ncfg, double txtime)
 {

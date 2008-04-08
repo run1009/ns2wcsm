@@ -92,6 +92,7 @@ public:
 	//! Get an MSH-DSCH message from a neighbor, which is not deallocated.
 	virtual void recvMshDsch (WimshMshDsch* dsch) = 0;
 
+	virtual void recvMshCsch (WimshMshCsch* csch) { }
 	//! Schedule bandwidth into the following MSH-DSCH message.
 	/*!
 	  Some fieds have been already filled by the coordinator.
