@@ -1116,6 +1116,9 @@ SSWimshMac::opportunity(WimshMshCsch* csch)
 {
   assert( initialized );
 
+
+  bwmanager_->schedule(csch);
+
   hLastCsch_ = NOW;
 
 

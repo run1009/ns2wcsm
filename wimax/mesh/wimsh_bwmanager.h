@@ -30,6 +30,7 @@
 
 class WimshMac;
 class WimshMshDsch;
+class WimshMshCsch;
 
 /*
  *
@@ -97,6 +98,8 @@ public:
 	  */
 	virtual void schedule (WimshMshDsch* dsch) = 0;
 
+	virtual void schedule (WimshMshCsch* csch) { }
+
 	//! Timer handler.
 	virtual void handle ();
 
@@ -110,6 +113,9 @@ public:
 	//! Indicate some additional on a link towards a neighbor.
 	virtual void backlog (WimaxNodeId nexthop, unsigned int bytes ) = 0;
 
+	virtual void backlog (int size) {}
+
+
 	//! Indicate some data was received.
 	virtual void received (WimaxNodeId src, WimaxNodeId dst, unsigned char prio,
 			WimaxNodeId source, unsigned int bytes) = 0;
@@ -117,6 +123,7 @@ public:
 	//! We sent out some data on a link (i.e. negative backlog).
 	virtual void sent (WimaxNodeId nexthop, unsigned int bytes) = 0;
 
+	vittual void sent (int size) {}
 	//! Tcl interface from the MAC layer.
 	virtual int command (int argc, const char*const* argv) = 0;
 

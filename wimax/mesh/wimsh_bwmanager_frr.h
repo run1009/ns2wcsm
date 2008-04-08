@@ -272,6 +272,8 @@ protected:
 	//! Minimum grant size, in OFDM symbols, preamble not included. Default = 1.
 	unsigned int minGrant_;
 
+	unsigned int backlog_;
+
 public:
 	//! Create an empty bandwidth manager.
 	WimshBwManagerFairRR (WimshMac* m);
@@ -287,6 +289,8 @@ public:
 	  */
 	void schedule (WimshMshDsch* dsch);
 
+	void schedule (WImshMshCsch* csch);
+
 	//! Resize the internal data structures based on the number of neighbors.
 	void initialize ();
 
@@ -297,8 +301,13 @@ public:
 	//! We have some new data to send out on a link.
 	void backlog (WimaxNodeId nexthop, unsigned int bytes);
 
+	void backlog(int size);
+
 	//! We sent out some data on a link (i.e. negative backlog).
 	void sent (WimaxNodeId nexthop, unsigned int bytes);
+
+
+	void sent(int size);
 
 	//! We received some new data addressed to this node.
 	void received (WimaxNodeId src, WimaxNodeId dst, unsigned char prio,

@@ -33,12 +33,23 @@
 
 WimshCoordinator::WimshCoordinator (WimshMac* m) : mac_(m), timer_ (this)
 {
-	nextDschSlot_  = 0;
-	nextDschFrame_ = NEVER;
+  /*
+  nextDschSlot_  = 0;
+  nextDschFrame_ = NEVER;
 	nextNcfgSlot_  = 0;
 	nextNcfgFrame_ = NEVER;
 	nextNentSlot_  = 0;      // never changed
 	nextNentFrame_ = NEVER;
+  */
+  //we don't need the ditribution scheduling working
+  nextDschSlot_ = -1;
+  nextDschFrame_ = -1;
+  nextNcfgSlot_ = -1;
+  nextNcfgFrame_ = -1;
+  nextNentSlot_ = -1;
+  nextNentFrame_ = -1;
+
+	// todo the nextCschSlot_
 	nextCschSlot_ = 0;
 	nextCschFrame_ = NEVER;
 }
@@ -131,14 +142,21 @@ WimshCoordinator::handle ()
 		mac_->opportunity (nent);
 	//3. it is time to transmit an MSH-CSCH message
 	} else if ( curslot == nextCschSlot_ && mac_->frame() == nextCschFrame_ ) {
-	  electionCsch();
+	  if ( mac_->nodeId() != 0 ) {
+	    //SS goes here
+	    electionCsch();
 	  
-	  timer_.start(phyMib->controlSlotDuration());
+
+	    timer_.start(phyMib->controlSlotDuration());
 
 	  //TODO:
-	  WimshMshCsch* csch = new WimshMshCsch;
+	    WimshMshCsch* csch = new WimshMshCsch;
 
-	  mac_->opportunity(csch);
+	    mac_->opportunity(csch);
+	  } else {
+	    //BS goes here
+	    
+	  }
 	// 4. the control frame ended
 	} else  if ( curslot == C ) {                                        
 		// set the timer to expire at the beginning of the next frame

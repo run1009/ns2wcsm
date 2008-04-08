@@ -73,6 +73,10 @@ public:
 
 	//! Tcl interface.
 	virtual int command(int argc, const char*const* argv) = 0;
+
+
+	//! use for centrial scheduling
+	virtual void TreeGenerate() = 0;
 private:
 	WimshTopology (const WimshTopology&);   // not defined
 	void operator= (const WimshTopology&);  // not defined
@@ -148,6 +152,13 @@ class WimshTopologySimple : public WimshTopology {
 	  */
 	RNG rng;
 	
+
+	int MaxNode;
+	int perMaxNode;
+	std::vector<int> hops;
+	std::vector<int> cschSequence;
+	std::vector<int> Sequence;
+	int totalHops;
 public:
 	//! Create an empty topology object.
 	WimshTopologySimple ();
@@ -179,7 +190,15 @@ public:
 								( WimaxNodeId src, WimaxNodeId dst );
 	//! Return the number of node in the scenario
 	unsigned int numNodes() { return connectivity_.getRows(); }
+
+	void TreeGenerate();
+
+
 	
+	std::vector<int> &getHops() { return hops; }
+	std::vector<int> &getCschSequence { return cschSequence; }
+	int Sequence(int i) { return Sequence[i]; }
+	int totalHops() { return totalHops; }
 protected:
 	//! Compute the conflict and apsp matrices.
 	void recompute ();

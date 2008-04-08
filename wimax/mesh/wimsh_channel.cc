@@ -116,6 +116,7 @@ WimshChannel::command(int argc, const char*const* argv)
 void
 WimshChannel::recvBurst (WimshBurst* burst)
 {
+  if(burst->type() != wimax::MSHCSCH) {
 	if ( WimaxDebug::trace("WCHN::recvBurst") ) fprintf (stderr,
 			"%.9f WCHN::recvBurst  [%d] src %d type %s txtime %f\n",
 			NOW, uid_, burst->source(),
@@ -145,6 +146,19 @@ WimshChannel::recvBurst (WimshBurst* burst)
 
 	// dispatch this burst a propagation time later
 	timer_.add (propagation_, burst);
+  } else {
+    // we assume there is no error occured in channel
+    burst->error() = false;
+    if ( burst->type() == wimax::DATA ) {
+      Stat::put ("wimsh_chn_data_tpt", 0, burst->size());    // all channels
+      Stat::put ("wimsh_chn_data_tpt", uid_, burst->size()); // this channel
+    }
+    else
+      Stat::put ("wimsh_chn_ctrl_tpt", uid_, burst->size());
+
+    // dispatch this burst a propagation time later
+    timer_.add (propagation_, burst);
+  }
 }
 
 void

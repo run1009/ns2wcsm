@@ -55,6 +55,8 @@ WimshBwManagerFairRR::WimshBwManagerFairRR (WimshMac* m) :
 	ddTimeout_             = 0;
 	ddTimer_               = 0;
 	minGrant_              = 1;
+	
+	backlog_	       = 0;
 }
 
 int
@@ -508,6 +510,19 @@ WimshBwManagerFairRR::schedule (WimshMshDsch* dsch)
 
    // add bandwidth grants and requests into the MSH-DSCH message
    requestGrant (dsch);
+}
+
+void 
+WimshBwManagerFairRR::schedule (WimshMshCsch* csch)
+{
+  if (backlog_) {
+    //fit the csch
+
+
+  } else {
+    //leave the csch blank
+
+  }
 }
 
 void
@@ -1366,6 +1381,12 @@ WimshBwManagerFairRR::backlog (WimaxNodeId nexthop, unsigned int bytes)
 		activeList_.insert (wimax::LinkId(ndx, wimax::OUT));
 }
 
+void 
+WimshBwManagerFairRR::backlog(int size)
+{
+  backlog_ += size;
+}
+
 void
 WimshBwManagerFairRR::sent (WimaxNodeId nexthop, unsigned int bytes)
 {
@@ -1374,6 +1395,12 @@ WimshBwManagerFairRR::sent (WimaxNodeId nexthop, unsigned int bytes)
 
 	// remove the amount of received bytes from the backlog of this output link
 	neigh_[ndx].backlog_ -= bytes;
+}
+
+void 
+WimshBwManagerFairRR::sent(int size)
+{
+  backlog_ -= size;
 }
 
 void

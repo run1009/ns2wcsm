@@ -136,6 +136,11 @@ WimshCoordinatorStandard::start ()
 
 	nextNentSlot_   = 0;
 	nextNentFrame_  = 0;
+	
+	//different node has different initial nextCschSlot_
+	int macId = mac_->nodeId();
+	nextCschSlot_ = mac_->topology()->Sequence(macId) % C;
+	nextCschFrame_ = mac->topology()->Sequence(macId) / C;
 
 	timer_.start (0);
 }
@@ -380,6 +385,30 @@ WimshCoordinatorStandard::electionNent ()
 	nextNentFrame_ += T + 1;
 }
 
+
+void
+WimshCoordinatorStandard::electionCsch ()
+{
+  //something to generate the csch
+
+
+  //compute the slot
+  int C = phyMib_->controlSlots();
+  int nodeNum = mac_->topology()->numNodes();
+  int seq = mac_->topology()->Sequence(mac_->nodeId());
+  int slot = currentCtrlSlotCsch();
+  int totalHops = mac_->topology()->totalHops();
+  slot += totalHops;
+  slot += nodeNum - 1 - seq + 1;
+  nextCschSlot_ = slot % C;
+  nextCschFrame_ = slot / C;
+  //compute the next slot and next time
+  //nextCschSlot_ ++;
+  //nextCschFrame_ ++;
+
+}
+
+
 void 
 WimshCoordinatorStandard::competition (
 		std::list<NeighInfo>& nghList,
@@ -590,4 +619,18 @@ WimshCoordinatorStandard::currentCtrlSlotNcfg (double txtime)
 	unsigned int frame = slot / C;
 	slot -= ( 1 + T * C ) * ( frame / ( T + 1 ) );
 	return slot;
+}
+
+
+unsigned int
+WimshCoordinatorStandard::currentCtrlSlotCsch (double txtime)
+{
+  //const unsigned int C = phyMib_->controlSlots();
+  
+  unsigned int slot = currentCtrlSlot(txtime);
+  //unsigned int frame = slot / C;
+  //something to do the slot
+
+  
+  return slot;
 }

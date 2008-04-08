@@ -93,6 +93,14 @@ int WimshTopologySimple::command (int argc, const char*const* argv)
 		recompute ();
 		return TCL_OK;
 	}
+	else if ( argc == 3 && strcmp(argv[1],"MaxNode") == 0) {
+	  MaxNode = atoi(argv[2]);
+	  return TCL_OK;
+	}
+	else if ( argc == 3 && strcmp(argv[1],"perMaxNode") == 0) {
+	  perMaxNode = atoi(argv[2]);
+	  return TCL_OK;
+	}
 	return command (argc, argv);
 }
 
@@ -473,3 +481,66 @@ WimshTopologySimple::dump (FILE* os)
 
 }
 
+
+
+//! using bfs algorithm to generate tree from graph
+void
+WimshTopologySimple::TreeGenerate()
+{
+  unsigned int nodeNum = connectivity_.getRows();
+  std::vector<int> color;
+  std::vector<int> d;
+  std::vector<int> parent;
+  int maxHop = 0;
+
+  hops.resize(nodeNum);
+  cschSequence.resize(nodeNum);
+  Sequence.resize(nodeNum);
+
+  color.resize(nodeNum);
+  d.resize(nodeNum);
+  parent.resize(nodeNum);
+  
+  for(int i = 0; i < nodeNum; ++i) {
+    color[i] = 0;
+    d[i] = 0;
+    parent[i] = -1;
+  }
+  //! hereafter we assume bs index is 0
+  color[0] = 1;
+  parent[0] = -1;
+  std::queue<int> q;
+  queue.push(0);
+  while(!queue.empty()) {
+    int u = queue.front();
+    queue.pop();
+    for(int i = 0; i < nodeNum; ++i) {
+      if(connectivity_.at(i,u)) {
+	if(color[i] == 0) {
+	  color[i] = 1;
+	  d[i] = d[u] + 1;
+	  if(maxHop < d[i]) maxHop = d[i];
+	  parent[i] = u;
+	  queue.push(i);
+	}
+      }
+    }
+    color[u] = 2;
+  }
+
+  // use the vector d to update the hops
+  totalHops = maxHop;
+  for(int i = 0;i < d.size(); ++i) hops[i] = d[i];
+
+  // compute the transmit csch sequence
+  // the content of cschSequence[i] is at i time, the cschSequence[i] transmit the csch
+  int current = 0;
+  for(int i = maxHop; i > 0; i--) {
+    for(int j = 0; j < hops.size(); j++) {
+      if ( hops[j] == i ) cschSequence[current++] = j;
+    }
+  }
+  Sequence[0] = 0; //bs don't need to request
+  for(int i = 0;i < cschSequence.size();++i)
+    Sequence[cschSequence[i]] = i + 1;
+}
