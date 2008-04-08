@@ -405,8 +405,10 @@ public:
 
   }
   
+  bool getFlag() { return flag_; }
   std::list<FlowEntry*> & getFlowEntries() { return flowEntries; }
   unsigned int getFlowSE() { return flowScaleExponent; }
+  void add(FlowEntry* flow) { flowEntries.push_back(flow); }
   //int bytes
   int size() { return (4 + flowEntries.size() ) ; }
   //TODO:size() more about

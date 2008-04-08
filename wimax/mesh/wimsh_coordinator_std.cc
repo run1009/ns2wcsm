@@ -281,6 +281,18 @@ void
 WimshCoordinatorStandard::recvMshCsch (WimshMshCsch *csch, double txtime)
 {
   //leave it blank
+  //if we get the csch from the children,and this node is SS,so we just combinate the csch
+  if(mac_->nodeId() != 0) {
+    if (csch->getFlag()) {
+      //request
+      //adding the node's request and forwarding the csch
+      
+    } else {
+      //grant
+      //pass csch to bwmanager
+      
+    }
+  }
 }
 
 void
