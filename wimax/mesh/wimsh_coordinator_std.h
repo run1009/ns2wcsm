@@ -22,6 +22,7 @@
 
 #include <list>
 
+#include <wimsh_packet.h>
 #include <wimsh_coordinator.h>
 
 /*
@@ -135,6 +136,9 @@ class WimshCoordinatorStandard : public WimshCoordinator {
 	//! True if this node belongs to the maximum clique in the conflit graph.
 	bool maxClique_;
 
+
+	std::vector<WimshMshCsch *> ChildCsch;
+
 public:
 	//! Create the coordinator.
 	WimshCoordinatorStandard (WimshMac* m, WimshPhyMib* p);
@@ -165,7 +169,7 @@ protected:
 	//! Election procedure called by handle().
 	void electionNent ();
 
-	void electionCsch ();
+	void electionCsch (WimshMshCsch* csch);
 	
 	//! Fill the IE about myself with scheduling information.
 	void fillSelf (WimshMshDsch* dsch);

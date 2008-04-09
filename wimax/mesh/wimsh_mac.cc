@@ -1110,11 +1110,10 @@ BSWimshMac::command(int argc,const char*const* argv) {
 void 
 SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
   assert ( initialized );
-  
-  coordinator_->recvMshCsch(csch,txtime);
+  if(csch->getFlag() && mac_->nodeId() == mac_->topology()->parent(csch->getTransmitId())) //request
+    coordinator_->recvMshCsch(csch,txtime);
   bwmanager_->recvMshCsch(csch);
   forwarding_->recvMshCsch(csch);
-
 }
 
 void

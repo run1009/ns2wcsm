@@ -490,7 +490,6 @@ WimshTopologySimple::TreeGenerate()
   unsigned int nodeNum = connectivity_.getRows();
   std::vector<int> color;
   std::vector<int> d;
-  std::vector<int> parent;
   int maxHop = 0;
 
   hops.resize(nodeNum);
@@ -554,4 +553,12 @@ WimshTopologySimple::TreeGenerate()
     connectivity_.at(i,parent[i]) = 1;
     connectivity_at(parent[i],i) = 1;
   }
+
+  //compute the number of children that the node has
+  childNum.resize(nodeNum);
+  for(int i = 0; i < childNum.size(); ++i)
+    childNum[i] = 0;
+  for(int i = 0; i < childNum.size(); ++i)
+    for(int j = 0; j < parent.size(); ++j)
+      if(parent[j] == i) childNum[i]++;
 }

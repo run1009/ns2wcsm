@@ -108,7 +108,7 @@ protected:
 	//! Election procedure called by handle().
 	virtual void electionNent () = 0;
 
-	virtual void electionCsch () = 0;
+	virtual void electionCsch (WimshMshCsch* csch) = 0;
 
 
 	//! Fill the IE about myself in an MSH-DSCH message.

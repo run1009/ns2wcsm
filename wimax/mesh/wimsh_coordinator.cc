@@ -144,13 +144,14 @@ WimshCoordinator::handle ()
 	} else if ( curslot == nextCschSlot_ && mac_->frame() == nextCschFrame_ ) {
 	  if ( mac_->nodeId() != 0 ) {
 	    //SS goes here
-	    electionCsch();
+	    WimshMshCsch* csch = new WimshMshCsch;
+	    csch->getTransmitId() = mac_->nodeId();
+	    electionCsch(csch);
 	  
 
 	    timer_.start(phyMib->controlSlotDuration());
 
 	  //TODO:
-	    WimshMshCsch* csch = new WimshMshCsch;
 
 	    mac_->opportunity(csch);
 	  } else {

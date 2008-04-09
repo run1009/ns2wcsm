@@ -379,6 +379,8 @@ private:
   //unsigned frame_num;
   //grant/Request flag true-request, false-grant
   bool flag_;
+
+  int transmitId;
     
   //Flow Scale Exponent
   unsigned flowScaleExponent;
@@ -390,16 +392,36 @@ public:
     //----------------
     //standard not included
     int id;
+    int towardId;//set by BS , the BS use bellmanFord to generate the path
     //----------------
     //use for SS request
     unsigned upFlow;
     unsigned downFlow;
-    int channel;
-    int frame;
+    int uchannel;
+    int uframe;
     //use for bs grant
-    int start;
-    int frage;
+    int ustart;
+    int ufrange;
+    
+    int dchannel;
+    int dframe;
+    int dstart;
+    int dfrange;
     //in bytes
+    FlowEntry() {
+      id = 0;
+      towardId = -1;
+      upFlow = 0;
+      downFlow = 0;
+      uchannel = 0;
+      uframe = 0;
+      ustart = 0;
+      ufrange = 0;
+      dchannel = 0;
+      dframe = 0;
+      dstart = 0;
+      dfrange = 0;
+    }
     static unsigned size() { return 1;}
   };
 prviate:
@@ -409,10 +431,10 @@ public:
     // now it leaves blank
 
   }
-  
+  int &getTransmitId() { return transmitId; }
   bool getFlag() { return flag_; }
   std::list<FlowEntry*> & getFlowEntries() { return flowEntries; }
-  unsigned int getFlowSE() { return flowScaleExponent; }
+  unsigned int &getFlowSE() { return flowScaleExponent; }
   void add(FlowEntry* flow) { flowEntries.push_back(flow); }
   //int bytes
   int size() { return (4 + flowEntries.size() ) ; }

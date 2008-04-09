@@ -280,6 +280,7 @@ WimshCoordinatorStandard::recvMshDsch (WimshMshDsch *dsch, double txtime)
 void 
 WimshCoordinatorStandard::recvMshCsch (WimshMshCsch *csch, double txtime)
 {
+  /*
   //leave it blank
   //if we get the csch from the children,and this node is SS,so we just combinate the csch
   if(mac_->nodeId() != 0) {
@@ -293,6 +294,12 @@ WimshCoordinatorStandard::recvMshCsch (WimshMshCsch *csch, double txtime)
       
     }
   }
+  */
+  //collect the children's csch request,combinate them into one csch
+  ChildCsch.push_back(csch);
+  //if(ChildCsch.size() == mac_->topology()->ChildNum(mac_->nodeId()))
+  //completed = true;
+  //else completed = false;
 }
 
 void
@@ -405,7 +412,7 @@ WimshCoordinatorStandard::electionNent ()
 
 
 void
-WimshCoordinatorStandard::electionCsch ()
+WimshCoordinatorStandard::electionCsch (WimshMshCsch* csch)
 {
   //something to do for generating the csch
 
@@ -423,6 +430,14 @@ WimshCoordinatorStandard::electionCsch ()
   //compute the next slot and next time
   //nextCschSlot_ ++;
   //nextCschFrame_ ++;
+  for(int i = 0; i < ChildCsch.size(); ++i) {
+    std::list<WimshMshCsch::FlowEntry *>::iterator it;
+    std::list<WimshMshCsch::FlowEntry *> flow = ChildCsch[i]->getFlowEntries();
+    for(it = flow.begin(); it != flow.end(); ++it)
+      csch->add(it);
+    delete ChildCsch[i];
+  }
+  ChildCsch.clear();
 }
 
 

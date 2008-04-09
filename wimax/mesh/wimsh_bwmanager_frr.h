@@ -273,6 +273,8 @@ protected:
 	unsigned int minGrant_;
 
 	unsigned int backlog_;
+	
+
 
 public:
 	//! Create an empty bandwidth manager.

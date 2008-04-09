@@ -159,6 +159,8 @@ class WimshTopologySimple : public WimshTopology {
 	std::vector<int> cschSequence;
 	std::vector<int> Sequence;
 	int totalHops;
+	std::vector<int> parent;
+	std::vector<int> childNum;
 public:
 	//! Create an empty topology object.
 	WimshTopologySimple ();
@@ -199,6 +201,9 @@ public:
 	std::vector<int> &getCschSequence { return cschSequence; }
 	int Sequence(int i) { return Sequence[i]; }
 	int totalHops() { return totalHops; }
+	int parent(int id) { return parent[id]; }
+
+	int ChildNum(int id) {return childNum[id]; }
 protected:
 	//! Compute the conflict and apsp matrices.
 	void recompute ();

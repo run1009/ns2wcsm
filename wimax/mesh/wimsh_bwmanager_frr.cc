@@ -25,6 +25,7 @@
 
 #include <random.h>
 #include <stat.h>
+#include <wimsh_packet.h>
 
 WimshBwManagerFairRR::WimshBwManagerFairRR (WimshMac* m) :
 	WimshBwManager (m), wm_ (m)
@@ -235,17 +236,42 @@ void
 WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 {
   //now just for SS
-  if ( csch->getFlag() ) {
+  if ( !csch->getFlag() ) {
     unsigned int flowSE = csch->getFlowSE();
     std::list<WimshMshCsch::FlowEntry*> flow = csch->getFlowEntries();
     std::list<WimshMshCsch::FlowEntry*>::iterator it = flow.begin();
     for(;it != flow.end(); ++it) {
       //mark the minislot
-
+      int id = it->id;
+      int uchannel = it->uchannel;
+      int uframe = it->uframe%HORIZON;
+      int ustart = it->ustart;
+      int ufrange = it->ufrange;
+      int dchannel = it->dchannel;
+      int dframe = it->dframe;
+      int dstart = it->dstart;
+      int dfrange = it->dfrange;
+      if(id != mac_->nodeId()) {
+	for(int i = ustart; i < ufrange; ++i) {
+	  grants_[uframe][i] = false;
+	  channel_[uframe][i] = uchannel;
+	}
+	for(int i = dstart; i < dfrange; ++i) {
+	  grant_[dframe][i] = false;
+	  channel_[dframe][i] = dchannel;
+	}
+      } else {
+	for(int i = ustart; i < ufrange; ++i) {
+	  grants_[uframe][i] = true;
+	  channel_[uframe][i] = uchannel;
+	  dst_[uframe][i] = mac_->topology()->parent(mac_->nodeId());
+	}
+	for(int i = dstart; i < dfrange; ++i) {
+	  grant_[dframe][i] =  true;
+	  channel_[dframe][i] = channel;
+	  dst_[dframe][i] = it->towardId;
+      }
     }
-  } else {
-    //add our requst,and transmit the csch
-
   }
 
   //if the node is BS,and the bs should calculate the minislot
@@ -539,9 +565,14 @@ WimshBwManagerFairRR::schedule (WimshMshCsch* csch)
   if (backlog_) {
     //fit the csch
     //compute the transmit time, and fit it into upFlow
-
+    unsigned flowex = csch->getFlowSE();
+    unsigned rate = (1<<(14 + flowex)) / 8;
+    unsigned up = backlog_ / rate;
+    WimshMshCsch::FlowEntry * fe = new WimshMshCsch::FlowEntry;
+    fe->id = mac_->nodeId();
+    fe->upFlow = up;
+    csch->add(fe);
   }
-    //leave the csch blank
 }
 
 void
