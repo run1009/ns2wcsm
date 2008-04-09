@@ -240,10 +240,15 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
     std::list<WimshMshCsch::FlowEntry*> flow = csch->getFlowEntries();
     std::list<WimshMshCsch::FlowEntry*>::iterator it = flow.begin();
     for(;it != flow.end(); ++it) {
-    
+      //mark the minislot
 
     }
+  } else {
+    //add our requst,and transmit the csch
+
   }
+
+  //if the node is BS,and the bs should calculate the minislot
 
 }
 
@@ -533,12 +538,10 @@ WimshBwManagerFairRR::schedule (WimshMshCsch* csch)
 {
   if (backlog_) {
     //fit the csch
-
-
-  } else {
-    //leave the csch blank
+    //compute the transmit time, and fit it into upFlow
 
   }
+    //leave the csch blank
 }
 
 void

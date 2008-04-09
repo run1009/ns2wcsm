@@ -376,7 +376,7 @@ public:
 
 struct WimshMshCsch {
 private:
-  unsigned frame_num;
+  //unsigned frame_num;
   //grant/Request flag true-request, false-grant
   bool flag_;
     
@@ -391,9 +391,14 @@ public:
     //standard not included
     int id;
     //----------------
+    //use for SS request
     unsigned upFlow;
     unsigned downFlow;
     int channel;
+    int frame;
+    //use for bs grant
+    int start;
+    int frage;
     //in bytes
     static unsigned size() { return 1;}
   };

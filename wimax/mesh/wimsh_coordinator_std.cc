@@ -407,10 +407,10 @@ WimshCoordinatorStandard::electionNent ()
 void
 WimshCoordinatorStandard::electionCsch ()
 {
-  //something to generate the csch
+  //something to do for generating the csch
 
 
-  //compute the slot
+  //compute the slot,BS and SS have the same method to compute the nextcsch
   int C = phyMib_->controlSlots();
   int nodeNum = mac_->topology()->numNodes();
   int seq = mac_->topology()->Sequence(mac_->nodeId());
@@ -423,7 +423,6 @@ WimshCoordinatorStandard::electionCsch ()
   //compute the next slot and next time
   //nextCschSlot_ ++;
   //nextCschFrame_ ++;
-
 }
 
 
