@@ -432,7 +432,7 @@ public:
 
   }
   int &getTransmitId() { return transmitId; }
-  bool getFlag() { return flag_; }
+  bool & getFlag() { return flag_; }
   std::list<FlowEntry*> & getFlowEntries() { return flowEntries; }
   unsigned int &getFlowSE() { return flowScaleExponent; }
   void add(FlowEntry* flow) { flowEntries.push_back(flow); }

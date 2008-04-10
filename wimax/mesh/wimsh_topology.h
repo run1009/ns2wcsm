@@ -77,6 +77,14 @@ public:
 
 	//! use for centrial scheduling
 	virtual void TreeGenerate() = 0;
+
+	virtual std::vector<int> &getHops() = 0;
+	virtual std::vector<int> &getCschSequence() = 0;
+	virtual int Sequence(int) = 0;
+	virtual int totalHops() = 0;
+	virtual int parent(int) = 0;
+	virtual int ChildNum(int) = 0;
+	virtual std::vector<int>& getParent() = 0;
 private:
 	WimshTopology (const WimshTopology&);   // not defined
 	void operator= (const WimshTopology&);  // not defined
@@ -198,10 +206,11 @@ public:
 
 	
 	std::vector<int> &getHops() { return hops; }
-	std::vector<int> &getCschSequence { return cschSequence; }
+	std::vector<int> &getCschSequence() { return cschSequence; }
 	int Sequence(int i) { return Sequence[i]; }
 	int totalHops() { return totalHops; }
 	int parent(int id) { return parent[id]; }
+	std::vector<int> &getParent() { return parent; }
 
 	int ChildNum(int id) {return childNum[id]; }
 protected:

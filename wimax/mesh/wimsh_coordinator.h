@@ -109,7 +109,8 @@ protected:
 	virtual void electionNent () = 0;
 
 	virtual void electionCsch (WimshMshCsch* csch) = 0;
-
+	
+	virtual int electionCsch() = 0;
 
 	//! Fill the IE about myself in an MSH-DSCH message.
 	virtual void fillSelf (WimshMshDsch* dsch) = 0;
@@ -190,7 +191,8 @@ protected:
 	//! Election procedure called by handle().
 	void electionNent () {};
 	
-	void electionCsch () {};
+	void electionCsch (WimshMshCsch*) {};
+	int electionCsch() { return 0;}
 	//! Fill the IE about myself with junk information.
 	void fillSelf (WimshMshDsch* dsch);
 

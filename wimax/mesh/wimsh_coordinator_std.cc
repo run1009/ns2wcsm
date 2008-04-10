@@ -441,6 +441,18 @@ WimshCoordinatorStandard::electionCsch (WimshMshCsch* csch)
 }
 
 
+//return the start frame number
+int 
+WimshCoordinatorStandard::electionCsch() 
+{
+  int C = phyMib_->controlSlots();
+  int slot = currentCtrlSlotCsch();
+  int totalHops = mac_->topology()->totalHops();
+  slot += totalHops;
+  int startFrame = slot / C;
+  return startFrame;
+}
+
 void 
 WimshCoordinatorStandard::competition (
 		std::list<NeighInfo>& nghList,

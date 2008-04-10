@@ -39,6 +39,7 @@
 #include <stat.h>
 
 #include <iostream>
+#include <vector>
 
 /*
  *
@@ -1069,24 +1070,26 @@ WimshMac::transmit (unsigned int range, WimaxNodeId dst, unsigned int channel)
 void 
 BSWimshMac::recvMshCsch(WimshMshCsch* csch, double txtime) {
   assert (initialized );
-  if(csch->flag_ == false) {
-    delete csch;
-  } else {
-    
-
-  }
+  //store the csch of children
+  if( csch->flag() )
+    message.push_back(csch);
 }
 
 
 void 
-BSWimshMac::opportunity(WimshMshCsch* csch)
+BSWimshMac::opportunity(int startFrame)
 {
   assert ( initialized );
 
   WimshBurst* burst = new WimshBurst;
 
-  burst->addMshCsch (csch);
+  WimshMshCsch * csch = new WimshMshCsch;
+  //grant frame
+  csch->getFlag() = false;
+  //burst->addMshCsch (csch);
+  //compute the frame that the grant message reaches the end node
   
+  std::vector<int> 
   hLastCsch_ = NOW;
   //do the work that BS shall allocate the minislot to SS
 
@@ -1114,6 +1117,22 @@ SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
     coordinator_->recvMshCsch(csch,txtime);
   bwmanager_->recvMshCsch(csch);
   forwarding_->recvMshCsch(csch);
+  //pass the grant to children of the node
+  if(!csch->getFlag()) { 
+    std::vector<int> parent = topology()->getParent();
+    std::vector<int> child;
+    for(int i = 0; i < parent.size(); ++i) {
+      if (parent[i] == nodeId() )
+	child.push_back(i);
+    }
+    for(int i = 0; i < child.size(); ++i) {
+      setControlChannel(wimax::TX);
+      WimshMshBurst *burst = new WimshMshBurst;
+      burst->addMshCsch (csch);
+      phy_[0]->sendBurst (burst);
+    }
+    child.clear();
+  }
 }
 
 void

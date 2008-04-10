@@ -380,7 +380,8 @@ public:
 	void opportunity (WimshMshNent* nent);
 
 	virtual void opportunity (WimshMshCsch* csch) { }
-
+	
+	virtual void opportunity (int) { }
 	//! Get the NodeID.
 	WimaxNodeId nodeId () { return nodeId_; }
 
@@ -502,13 +503,15 @@ private:
 //! added by jpyu
 
 class BSWimshMac : public WimshMac {
+ private:
+  std::vector<WimshMshCsch*> message;
  public:
  BSWimshMac() { }
  ~BSWimshMac() { }
 
   void recvMshCsch(WimshMshCsch* csch,double txtime);
 
-  void opportunity(WimshMshCsch* csch);
+  void opportunity(int);
   //bs cann't receive cscf
  protected:
   virtual int command (int argc, const char*const* argv);

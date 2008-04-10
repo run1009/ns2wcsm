@@ -156,7 +156,10 @@ WimshCoordinator::handle ()
 	    mac_->opportunity(csch);
 	  } else {
 	    //BS goes here
-	    
+	    //get the csch message
+	    timer_.start(phyMib->controlSlotDuration());
+	    int startFrame = electionCsch();
+	    mac_->opportunity(startFrame);
 	  }
 	// 4. the control frame ended
 	} else  if ( curslot == C ) {                                        

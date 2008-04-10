@@ -270,6 +270,7 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 	  grant_[dframe][i] =  true;
 	  channel_[dframe][i] = channel;
 	  dst_[dframe][i] = it->towardId;
+	}
       }
     }
   }
