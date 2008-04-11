@@ -1077,7 +1077,7 @@ BSWimshMac::recvMshCsch(WimshMshCsch* csch, double txtime) {
 
 
 void 
-BSWimshMac::opportunity(int startFrame)
+BSWimshMac::opportunity(int startFrame,int endFrame)
 {
   assert ( initialized );
 
@@ -1089,7 +1089,31 @@ BSWimshMac::opportunity(int startFrame)
   //burst->addMshCsch (csch);
   //compute the frame that the grant message reaches the end node
   
-  std::vector<int> 
+  int frames = endFrame - startFrame;
+
+  assert ( frames > 0);
+  //compute the up flow
+  std::vector<int> hops = topology_->getHops();
+  std::vector<int> parent = topology_->getParent();
+  int totalUpFlow = 0;
+  for(int i = 0; i < message.size() ; ++i) {
+    WimshMshCsch *childCsch = message[i];
+    std::list<WimshMshCsch::FlowEntry*> flow = message->getFlowEntries();
+    std::list<WImshMshCsch::FlowEntry*>::iterator it;
+    for(it = flow.begin(); it != flow.end(); ++it)
+      totalUpFlow += it->upFlow * hops[it->id];
+  }
+
+
+  //compute the down flow
+
+
+
+  //allocate the minislots
+
+
+
+
   hLastCsch_ = NOW;
   //do the work that BS shall allocate the minislot to SS
 

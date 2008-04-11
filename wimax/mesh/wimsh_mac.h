@@ -381,7 +381,7 @@ public:
 
 	virtual void opportunity (WimshMshCsch* csch) { }
 	
-	virtual void opportunity (int) { }
+	virtual void opportunity (int,int) { }
 	//! Get the NodeID.
 	WimaxNodeId nodeId () { return nodeId_; }
 
@@ -511,7 +511,7 @@ class BSWimshMac : public WimshMac {
 
   void recvMshCsch(WimshMshCsch* csch,double txtime);
 
-  void opportunity(int);
+  void opportunity(int,int);
   //bs cann't receive cscf
  protected:
   virtual int command (int argc, const char*const* argv);
