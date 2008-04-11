@@ -40,6 +40,7 @@
 
 #include <iostream>
 #include <vector>
+#include <queue>
 
 /*
  *
@@ -1088,29 +1089,89 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   csch->getFlag() = false;
   //burst->addMshCsch (csch);
   //compute the frame that the grant message reaches the end node
-  
+  int flowSe = 0;
+  csch->getFlowSE() = flowSe;
+
   int frames = endFrame - startFrame;
 
   assert ( frames > 0);
   //compute the up flow
+  //the hop of node i in the scheduling tree
   std::vector<int> hops = topology_->getHops();
+  //the node's parent in the scheduling tree
   std::vector<int> parent = topology_->getParent();
-  int totalUpFlow = 0;
+  //the node's request slot
+  std::vector<int> reqSlot;
+  reqSlot.resize(topology_->numNodes());
+  for(int i = 0; i < reqSlot.size() ; ++i) reqSlot[i] = 0;
+  int totalUpByte = 0;
   for(int i = 0; i < message.size() ; ++i) {
     WimshMshCsch *childCsch = message[i];
     std::list<WimshMshCsch::FlowEntry*> flow = message->getFlowEntries();
     std::list<WImshMshCsch::FlowEntry*>::iterator it;
-    for(it = flow.begin(); it != flow.end(); ++it)
-      totalUpFlow += it->upFlow * hops[it->id];
+    for(it = flow.begin(); it != flow.end(); ++it) {
+      totalUpByte += it->upFlow * hops[it->id];
+      reqSlot[it->id] += it->upFlow;
+    }
   }
 
 
   //compute the down flow
+  int totalDownByte = bwmanager_->ReadyByte();
 
-
-
+  int totalByte = totalUpByte + totalDownByte;
   //allocate the minislots
+  //int NeededSlot = bytes2Slots(totalByte,false);
+  int alpha = WimshPhyMib::alpha[0];
+  // no preamble
+  //int NeededSlot = 1 + (( totalByte - 1) / alpha) / phyMib_->symPerSlot();
+  int NeededSlot = 0;
+  for(int i = 1; i < reqSlot.size(); ++i) {
+    reqSlot[i] = 1 + ((reqSlot[i] -1) / alpha) / phyMib_->symPerSlot();
+    NeededSlot += reqSlot[i] * hops[i];
+  }
+  int avaliableSlot = frames * phyMib_->slotPerFrame();
 
+  std::queue<int> allocSeq;
+  if(NeededSlot <= avaliableSlot) {
+    // from SS to BS
+    int totalHops = topology_->totalHops();
+    for(int i = totalHops; i > 0; --i)
+      for(int j = 0; j < hops.size(); ++j)
+	if(hops[j] == i)
+	  allocSeq.push(j);
+    allocSeq.push(0);//bs
+    int currentFrame = startFrame;
+    int currentSlot = 0;
+    while(!allocSeq.empty()) {
+      p = allocSeq.front();
+      allocSeq.pop();
+      int req = reqSlot[p];
+      while(p) {
+	WimshMshCsch::FlowEntry* entry = new FlowEntry;
+	entry->id = p;
+	entry->towardId = parent[p];
+	entry->uchannel = 0;
+	entry->uframe = currentFrame;
+	entry->ustart = currentSlot;
+	entry->ufrange = req;
+	csch->add(entry);
+	currentSlot += req;
+	if(currentSlot >= phyMib_->slotPerFrame()) {
+	  currentFrame++;
+	  currentSlot -= phyMib_->slotPerFrame();
+	}
+	p = parent[p];
+      }
+    }
+    //from BS to SS
+    
+
+
+  } else {
+    
+
+  }
 
 
 

@@ -236,6 +236,7 @@ void
 WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 {
   //now just for SS
+  int N = mac_->phyMib()->slotPerFrame();
   if ( !csch->getFlag() ) {
     unsigned int flowSE = csch->getFlowSE();
     std::list<WimshMshCsch::FlowEntry*> flow = csch->getFlowEntries();
@@ -248,28 +249,32 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
       int ustart = it->ustart;
       int ufrange = it->ufrange;
       int dchannel = it->dchannel;
-      int dframe = it->dframe;
+      int dframe = it->dframe%HORIZON;
       int dstart = it->dstart;
       int dfrange = it->dfrange;
       if(id != mac_->nodeId()) {
 	for(int i = ustart; i < ufrange; ++i) {
-	  grants_[uframe][i] = false;
-	  channel_[uframe][i] = uchannel;
+	  if(i >= N) uframe = (uframe + 1) % HORIZON;
+	  grants_[uframe][i%N] = false;
+	  channel_[uframe][i%N] = uchannel;
 	}
 	for(int i = dstart; i < dfrange; ++i) {
-	  grant_[dframe][i] = false;
-	  channel_[dframe][i] = dchannel;
+	  if(i >= N) dframe = (dframe + 1) % HORIZON;
+	  grant_[dframe][i%N] = false;
+	  channel_[dframe][i%N] = dchannel;
 	}
       } else {
 	for(int i = ustart; i < ufrange; ++i) {
-	  grants_[uframe][i] = true;
-	  channel_[uframe][i] = uchannel;
-	  dst_[uframe][i] = mac_->topology()->parent(mac_->nodeId());
+	  if(i >= N) uframe = (uframe + 1) % HORIZON;
+	  grants_[uframe][i%N] = true;
+	  channel_[uframe][i%N] = uchannel;
+	  dst_[uframe][i%N] = mac_->topology()->parent(mac_->nodeId());
 	}
 	for(int i = dstart; i < dfrange; ++i) {
-	  grant_[dframe][i] =  true;
-	  channel_[dframe][i] = channel;
-	  dst_[dframe][i] = it->towardId;
+	  if(i >= N) dframe = (dframe + 1) % HORIZON;
+	  grant_[dframe][i%N] =  true;
+	  channel_[dframe][i%N] = channel;
+	  dst_[dframe][i%N] = it->towardId;
 	}
       }
     }
@@ -1430,6 +1435,19 @@ WimshBwManagerFairRR::backlog (WimaxNodeId nexthop, unsigned int bytes)
 	// if the output link is not already in the active list, push it in
 	if ( ! activeList_.find (wimax::LinkId(ndx, wimax::OUT)) )
 		activeList_.insert (wimax::LinkId(ndx, wimax::OUT));
+}
+
+
+int
+WimshBwManagerFairRR::ReadyByte() 
+{
+  //this function didn't consider the hop of node
+  //it is wrong
+  int total = 0;
+  for(int i = 0;i < neigh_.size(); ++i) {
+    total += neigh_[i].backlog_;
+  }
+  return total;
 }
 
 void 

@@ -426,6 +426,10 @@ public:
   };
 prviate:
   std::list<FlowEntry*> flowEntries;
+  
+  WimaxMacHeader hdr_;
+  WimaxNodeId src_;
+  Type type_;
 public:
   WimshMshCsch() {
     // now it leaves blank
@@ -439,6 +443,11 @@ public:
   //int bytes
   int size() { return (4 + flowEntries.size() ) ; }
   //TODO:size() more about
+
+  WimaxMacHeader& hdr() { return hdr_; }
+  WimaxNodeId& src() {return src_; }
+  Type& type() {return type_; }
+
 };
 
 

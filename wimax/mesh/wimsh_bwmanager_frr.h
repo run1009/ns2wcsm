@@ -312,6 +312,8 @@ public:
 
 	void sent(int size);
 
+	int ReadyByte();
+
 	//! We received some new data addressed to this node.
 	void received (WimaxNodeId src, WimaxNodeId dst, unsigned char prio,
 			WimaxNodeId source, unsigned int bytes) {

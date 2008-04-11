@@ -125,6 +125,8 @@ public:
 	virtual void sent (WimaxNodeId nexthop, unsigned int bytes) = 0;
 
 	vittual void sent (int size) {}
+
+	virtual int ReadyByte() {return 0;}
 	//! Tcl interface from the MAC layer.
 	virtual int command (int argc, const char*const* argv) = 0;
 
