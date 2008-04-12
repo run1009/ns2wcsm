@@ -127,6 +127,8 @@ protected:
 	//! Array of neighbor descriptors for bandwidth requesting/granting.
 	std::vector<NeighDesc> neigh_;
 
+
+	std::vector<int> neigh_slot;
 	//! Active-list of neighbor descriptors for bandwidth granting/requesting.
 	CircularList<wimax::LinkId> activeList_;
 
@@ -275,7 +277,6 @@ protected:
 	unsigned int backlog_;
 	
 
-
 public:
 	//! Create an empty bandwidth manager.
 	WimshBwManagerFairRR (WimshMac* m);
@@ -313,6 +314,8 @@ public:
 	void sent(int size);
 
 	int ReadyByte();
+
+	void allocSlot(WimshMshCsch * csch, int currentFrame, int currentSlot, double scale);
 
 	//! We received some new data addressed to this node.
 	void received (WimaxNodeId src, WimaxNodeId dst, unsigned char prio,

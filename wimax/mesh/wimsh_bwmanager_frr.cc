@@ -26,7 +26,8 @@
 #include <random.h>
 #include <stat.h>
 #include <wimsh_packet.h>
-
+#include <math.h>
+#include <vector>
 WimshBwManagerFairRR::WimshBwManagerFairRR (WimshMac* m) :
 	WimshBwManager (m), wm_ (m)
 {
@@ -194,6 +195,7 @@ WimshBwManagerFairRR::initialize ()
 	
 	// resize and clear the bw request/grant data structure
 	neigh_.resize (neighbors);
+	neigh_slot.resize (neighbors);
 
 	// resize and clear the neighbors' unavailabilites bitmaps
 	neigh_tx_unavl_.resize (neighbors);
@@ -1441,13 +1443,37 @@ WimshBwManagerFairRR::backlog (WimaxNodeId nexthop, unsigned int bytes)
 int
 WimshBwManagerFairRR::ReadyByte() 
 {
-  //this function didn't consider the hop of node
-  //it is wrong
+  //this function consider the node only one hop from bs
   int total = 0;
+  int alpha = WimshPhyMib::alpha[0];
+  //std::vector<int> hops = mac_->topology()->getHops();
   for(int i = 0;i < neigh_.size(); ++i) {
-    total += neigh_[i].backlog_;
+    neigh_slot[i] = 1 + ((neigh_[i].backlog_ - 1) / alpha) / mac_->phyMib()->symPerSlot();
+    total += neigh_slot[i];
   }
   return total;
+}
+
+void 
+WimshBwManagerFairRR::allocSlot(WimshMshCsch * csch, int& currentFrame, int& currentSlot, double scale)
+{
+  for(int i = 0; i < neigh_.size(); ++i) {
+    if(neigh_[i] != 0) {
+      WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
+      entry->id = mac_->nodeId();
+      entry->towardId = mac_->ndx2neigh(i);
+      entry->dchannel = 0;
+      entry->dframe = currentFrame;
+      entry->dstart = currentSlot;
+      entry->dfrange = (int) (neigh_slot[i] * scale);
+      csch->add(entry);
+      currentSlot += (int)(neigh_slot[i] * scale);
+      if(currentSlot >= mac_->phyMib()->slotPerFrame() ) {
+	currentFrame++;
+	currentSlot -= mac_->phyMib()->slotPerFrame();
+      }
+    }
+  }
 }
 
 void 

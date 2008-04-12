@@ -127,6 +127,8 @@ public:
 	vittual void sent (int size) {}
 
 	virtual int ReadyByte() {return 0;}
+
+	virtual void allocSlot(WimshMshCsch* csch,int currentFrame,int currentSlot,double scale) { }
 	//! Tcl interface from the MAC layer.
 	virtual int command (int argc, const char*const* argv) = 0;
 

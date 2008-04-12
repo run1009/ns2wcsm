@@ -1102,8 +1102,19 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   std::vector<int> parent = topology_->getParent();
   //the node's request slot
   std::vector<int> reqSlot;
+
+  //std::vector<int> traSlot;
+  //std::vector<int> dst;
+  
   reqSlot.resize(topology_->numNodes());
-  for(int i = 0; i < reqSlot.size() ; ++i) reqSlot[i] = 0;
+
+  //traSlot.resize(topology_->numNodes());
+  //dst.resize(topology_->numNodes());
+  
+  for(int i = 0; i < reqSlot.size() ; ++i) {
+    reqSlot[i] = 0;
+    //tranSlot[i] = 0;
+  }
   int totalUpByte = 0;
   for(int i = 0; i < message.size() ; ++i) {
     WimshMshCsch *childCsch = message[i];
@@ -1133,53 +1144,85 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   int avaliableSlot = frames * phyMib_->slotPerFrame();
 
   std::queue<int> allocSeq;
-  if(NeededSlot <= avaliableSlot) {
+  double scale = (double) avaliableSlot / NeededSlot;
+  if(scale - 1 > 1e-6) scale = 1;
     // from SS to BS
-    int totalHops = topology_->totalHops();
-    for(int i = totalHops; i > 0; --i)
-      for(int j = 0; j < hops.size(); ++j)
-	if(hops[j] == i)
-	  allocSeq.push(j);
-    allocSeq.push(0);//bs
-    int currentFrame = startFrame;
-    int currentSlot = 0;
-    while(!allocSeq.empty()) {
-      p = allocSeq.front();
-      allocSeq.pop();
-      int req = reqSlot[p];
-      while(p) {
-	WimshMshCsch::FlowEntry* entry = new FlowEntry;
-	entry->id = p;
-	entry->towardId = parent[p];
-	entry->uchannel = 0;
-	entry->uframe = currentFrame;
-	entry->ustart = currentSlot;
-	entry->ufrange = req;
-	csch->add(entry);
-	currentSlot += req;
-	if(currentSlot >= phyMib_->slotPerFrame()) {
-	  currentFrame++;
-	  currentSlot -= phyMib_->slotPerFrame();
+  int totalHops = topology_->totalHops();
+  for(int i = totalHops; i > 0; --i)
+    for(int j = 0; j < hops.size(); ++j)
+      if(hops[j] == i)
+	allocSeq.push(j);
+  allocSeq.push(0);//bs
+  int currentFrame = startFrame;
+  int currentSlot = 0;
+  while(!allocSeq.empty()) {
+    p = allocSeq.front();
+    allocSeq.pop();
+    int req =(int) ( reqSlot[p] * scale );
+    while(p) {
+      WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
+      entry->id = p;
+      entry->towardId = parent[p];
+      entry->uchannel = 0;
+      entry->uframe = currentFrame;
+      entry->ustart = currentSlot;
+      entry->ufrange = req;
+      csch->add(entry);
+      currentSlot += req;
+      if(currentSlot >= phyMib_->slotPerFrame()) {
+	currentFrame++;
+	currentSlot -= phyMib_->slotPerFrame();
+      }
+      p = parent[p];
+    }
+  }
+  //from BS to SS
+  bwmanager_->allocSlot(csch,currentFrame,currentSlot,scale);
+  
+  std::vector<int> id;
+  std::vector<int> tranSlot;
+  std::vector<int> dst;
+  
+  for(int i = 0;i < message.size(); ++i) {
+    std::list<WimshMshCsch::FlowEntry*> flow = message[i]->getFlowEntries();
+    std::list<WimshMshCsch::FlowEntry*>::iterator it;
+    for(it = flow.begin();it != flow.end(); ++it) {
+      for(int j = 0;j < tranSlot.size(); ++j) {
+	if(it->id == id[j] && it->towardId == dst[j])
+	  tranSlot += it->downFlow;
+	else {
+	  id.push_back(it->id);
+	  tranSlot.push_back(it->downFlow);
+	  dst.push_back(it->towardId);
 	}
-	p = parent[p];
       }
     }
-    //from BS to SS
-    
-
-
-  } else {
-    
-
+  }
+  for(int i = 0;i < tranSlot.size(); ++i)
+    tranSlot[i] = 1 + ((tranSlot[i] - 1) / alpha) / phyMib_->symPerSlot();
+  
+  for(int i = 0;i < id.size(); ++i) {
+    WimshMshCsch::FlowENtry* entry = new WimshMshCsch::FlowEntry;
+    entry->id = id[i];
+    entry->towardId = dst[i];
+    entry->dchannel = 0;
+    entry->dframe = currentFrame;
+    entry->dstart = currentSlot;
+    entry->dfrange = (int) (tranSlot * scale);
+    csch->add(entry);
+    currentSlot += entry->dfrange;
+    if(currentSlot >= phyMib_->slotPerFrame()) {
+      currentFrame++;
+      currentSlot -= phyMib_->slotPerFrame();
+    }
   }
 
-
-
+  message.clear();
   hLastCsch_ = NOW;
   //do the work that BS shall allocate the minislot to SS
 
   setControlChannel(wimax::TX);
-
+  burst->addMshCsch(csch);
   phy_[0]->sendBurst (burst);
 }
 
