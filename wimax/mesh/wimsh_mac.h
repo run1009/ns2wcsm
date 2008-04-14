@@ -179,7 +179,7 @@ class WimshMac : public TclObject {
 			frames_ = 0;
 		}
 	};
-
+ protected:
 	//! PHY MIB. Initialized via tcl command.
 	WimshPhyMib* phyMib_;
 	//! MAC MIB. Initialized via tcl command.

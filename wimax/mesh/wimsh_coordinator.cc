@@ -188,7 +188,7 @@ WimshCoordinator::handle ()
 			slot = nextNentSlot_;
 		} else if ( nextNcfgFrame_ == mac_->frame() ) {
 			slot = nextNcfgSlot_;
-		} else if ( nextCschFrame_ == nac_->frame() ) {
+		} else if ( nextCschFrame_ == mac_->frame() ) {
 		  slot = nextCschSlot_;
 		}
 

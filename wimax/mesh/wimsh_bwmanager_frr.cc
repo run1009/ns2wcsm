@@ -245,15 +245,15 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
     std::list<WimshMshCsch::FlowEntry*>::iterator it = flow.begin();
     for(;it != flow.end(); ++it) {
       //mark the minislot
-      int id = it->id;
-      int uchannel = it->uchannel;
-      int uframe = it->uframe%HORIZON;
-      int ustart = it->ustart;
-      int ufrange = it->ufrange;
-      int dchannel = it->dchannel;
-      int dframe = it->dframe%HORIZON;
-      int dstart = it->dstart;
-      int dfrange = it->dfrange;
+      int id = (*it)->id;
+      int uchannel = (*it)->uchannel;
+      int uframe = (*it)->uframe%HORIZON;
+      int ustart = (*it)->ustart;
+      int ufrange = (*it)->ufrange;
+      int dchannel = (*it)->dchannel;
+      int dframe = (*it)->dframe%HORIZON;
+      int dstart = (*it)->dstart;
+      int dfrange = (*it)->dfrange;
       if(id != mac_->nodeId()) {
 	for(int i = ustart; i < ufrange; ++i) {
 	  if(i >= N) uframe = (uframe + 1) % HORIZON;
@@ -262,7 +262,7 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 	}
 	for(int i = dstart; i < dfrange; ++i) {
 	  if(i >= N) dframe = (dframe + 1) % HORIZON;
-	  grant_[dframe][i%N] = false;
+	  grants_[dframe][i%N] = false;
 	  channel_[dframe][i%N] = dchannel;
 	}
       } else {
@@ -274,9 +274,9 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 	}
 	for(int i = dstart; i < dfrange; ++i) {
 	  if(i >= N) dframe = (dframe + 1) % HORIZON;
-	  grant_[dframe][i%N] =  true;
-	  channel_[dframe][i%N] = channel;
-	  dst_[dframe][i%N] = it->towardId;
+	  grants_[dframe][i%N] =  true;
+	  channel_[dframe][i%N] = dchannel;
+	  dst_[dframe][i%N] = (*it)->towardId;
 	}
       }
     }
@@ -1458,22 +1458,22 @@ void
 WimshBwManagerFairRR::allocSlot(WimshMshCsch * csch, int& currentFrame, int& currentSlot, double scale)
 {
   for(int i = 0; i < neigh_.size(); ++i) {
-    if(neigh_[i] != 0) {
-      WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
-      entry->id = mac_->nodeId();
-      entry->towardId = mac_->ndx2neigh(i);
-      entry->dchannel = 0;
-      entry->dframe = currentFrame;
-      entry->dstart = currentSlot;
-      entry->dfrange = (int) (neigh_slot[i] * scale);
-      csch->add(entry);
-      currentSlot += (int)(neigh_slot[i] * scale);
-      if(currentSlot >= mac_->phyMib()->slotPerFrame() ) {
-	currentFrame++;
-	currentSlot -= mac_->phyMib()->slotPerFrame();
-      }
+    //if(neigh_[i] != 0) {
+    WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
+    entry->id = mac_->nodeId();
+    entry->towardId = mac_->ndx2neigh(i);
+    entry->dchannel = 0;
+    entry->dframe = currentFrame;
+    entry->dstart = currentSlot;
+    entry->dfrange = (int) (neigh_slot[i] * scale);
+    csch->add(entry);
+    currentSlot += (int)(neigh_slot[i] * scale);
+    if(currentSlot >= mac_->phyMib()->slotPerFrame() ) {
+      currentFrame++;
+      currentSlot -= mac_->phyMib()->slotPerFrame();
     }
   }
+  //}
 }
 
 void 

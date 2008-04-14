@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/times.h>
 
+#include <queue>
 /*
  *
  * WimshTopologySimple
@@ -509,10 +510,10 @@ WimshTopologySimple::TreeGenerate()
   color[0] = 1;
   parentVec[0] = -1;
   std::queue<int> q;
-  queue.push(0);
-  while(!queue.empty()) {
-    int u = queue.front();
-    queue.pop();
+  q.push(0);
+  while(!q.empty()) {
+    int u = q.front();
+    q.pop();
     for(int i = 0; i < nodeNum; ++i) {
       if(connectivity_.at(i,u)) {
 	if(color[i] == 0) {
@@ -520,7 +521,7 @@ WimshTopologySimple::TreeGenerate()
 	  d[i] = d[u] + 1;
 	  if(maxHop < d[i]) maxHop = d[i];
 	  parentVec[i] = u;
-	  queue.push(i);
+	  q.push(i);
 	}
       }
     }
@@ -539,7 +540,7 @@ WimshTopologySimple::TreeGenerate()
       if ( hops[j] == i ) cschSequence[current++] = j;
     }
   }
-  Sequence[0] = 0; //bs don't need to request
+  SequenceVec[0] = 0; //bs don't need to request
   for(int i = 0;i < cschSequence.size();++i)
     SequenceVec[cschSequence[i]] = i + 1;
 
@@ -549,9 +550,9 @@ WimshTopologySimple::TreeGenerate()
       connectivity_.at(i,j) = 0;
     }
   }
-  for(int i = 1; i < parent.size(); ++i) {
+  for(int i = 1; i < parentVec.size(); ++i) {
     connectivity_.at(i,parentVec[i]) = 1;
-    connectivity_at(parentVec[i],i) = 1;
+    connectivity_.at(parentVec[i],i) = 1;
   }
 
   //compute the number of children that the node has

@@ -42,6 +42,7 @@
 #include <vector>
 #include <queue>
 
+
 /*
  *
  * class WimshMacMib
@@ -1072,7 +1073,7 @@ void
 BSWimshMac::recvMshCsch(WimshMshCsch* csch, double txtime) {
   assert (initialized );
   //store the csch of children
-  if( csch->flag() )
+  if( csch->getFlag() )
     message.push_back(csch);
 }
 
@@ -1097,16 +1098,16 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   assert ( frames > 0);
   //compute the up flow
   //the hop of node i in the scheduling tree
-  std::vector<int> hops = topology_->getHops();
+  std::vector<int> hops = topology()->getHops();
   //the node's parent in the scheduling tree
-  std::vector<int> parent = topology_->getParent();
+  std::vector<int> parent = topology()->getParent();
   //the node's request slot
   std::vector<int> reqSlot;
 
   //std::vector<int> traSlot;
   //std::vector<int> dst;
   
-  reqSlot.resize(topology_->numNodes());
+  reqSlot.resize(topology()->numNodes());
 
   //traSlot.resize(topology_->numNodes());
   //dst.resize(topology_->numNodes());
@@ -1118,11 +1119,11 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   int totalUpByte = 0;
   for(int i = 0; i < message.size() ; ++i) {
     WimshMshCsch *childCsch = message[i];
-    std::list<WimshMshCsch::FlowEntry*> flow = message->getFlowEntries();
-    std::list<WImshMshCsch::FlowEntry*>::iterator it;
+    std::list<WimshMshCsch::FlowEntry*> flow = childCsch->getFlowEntries();
+    std::list<WimshMshCsch::FlowEntry*>::iterator it;
     for(it = flow.begin(); it != flow.end(); ++it) {
-      totalUpByte += it->upFlow * hops[it->id];
-      reqSlot[it->id] += it->upFlow;
+      totalUpByte += (*it)->upFlow * hops[(*it)->id];
+      reqSlot[(*it)->id] += (*it)->upFlow;
     }
   }
 
@@ -1156,7 +1157,7 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   int currentFrame = startFrame;
   int currentSlot = 0;
   while(!allocSeq.empty()) {
-    p = allocSeq.front();
+    int p = allocSeq.front();
     allocSeq.pop();
     int req =(int) ( reqSlot[p] * scale );
     while(p) {
@@ -1188,12 +1189,12 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
     std::list<WimshMshCsch::FlowEntry*>::iterator it;
     for(it = flow.begin();it != flow.end(); ++it) {
       for(int j = 0;j < tranSlot.size(); ++j) {
-	if(it->id == id[j] && it->towardId == dst[j])
-	  tranSlot += it->downFlow;
+	if((*it)->id == id[j] && (*it)->towardId == dst[j])
+	  tranSlot[j] += (*it)->downFlow;
 	else {
-	  id.push_back(it->id);
-	  tranSlot.push_back(it->downFlow);
-	  dst.push_back(it->towardId);
+	  id.push_back((*it)->id);
+	  tranSlot.push_back((*it)->downFlow);
+	  dst.push_back((*it)->towardId);
 	}
       }
     }
@@ -1202,13 +1203,13 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
     tranSlot[i] = 1 + ((tranSlot[i] - 1) / alpha) / phyMib_->symPerSlot();
   
   for(int i = 0;i < id.size(); ++i) {
-    WimshMshCsch::FlowENtry* entry = new WimshMshCsch::FlowEntry;
+    WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
     entry->id = id[i];
     entry->towardId = dst[i];
     entry->dchannel = 0;
     entry->dframe = currentFrame;
     entry->dstart = currentSlot;
-    entry->dfrange = (int) (tranSlot * scale);
+    entry->dfrange = (int) (tranSlot[i] * scale);
     csch->add(entry);
     currentSlot += entry->dfrange;
     if(currentSlot >= phyMib_->slotPerFrame()) {
@@ -1218,7 +1219,7 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   }
 
   message.clear();
-  hLastCsch_ = NOW;
+  //hLastCsch_ = NOW;
   //do the work that BS shall allocate the minislot to SS
 
   setControlChannel(wimax::TX);
@@ -1241,10 +1242,10 @@ BSWimshMac::command(int argc,const char*const* argv) {
 void 
 SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
   assert ( initialized );
-  if(csch->getFlag() && mac_->nodeId() == mac_->topology()->parent(csch->getTransmitId())) //request
+  if(csch->getFlag() && nodeId() == topology()->parent(csch->getTransmitId())) //request
     coordinator_->recvMshCsch(csch,txtime);
   bwmanager_->recvMshCsch(csch);
-  forwarding_->recvMshCsch(csch);
+  //forwarding_->recvMshCsch(csch);
   //pass the grant to children of the node
   if(!csch->getFlag()) { 
     std::vector<int> parent = topology()->getParent();
@@ -1255,7 +1256,7 @@ SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
     }
     for(int i = 0; i < child.size(); ++i) {
       setControlChannel(wimax::TX);
-      WimshMshBurst *burst = new WimshMshBurst;
+      WimshBurst *burst = new WimshBurst;
       burst->addMshCsch (csch);
       phy_[0]->sendBurst (burst);
     }
@@ -1271,7 +1272,7 @@ SSWimshMac::opportunity(WimshMshCsch* csch)
 
   bwmanager_->schedule(csch);
 
-  hLastCsch_ = NOW;
+  //  hLastCsch_ = NOW;
 
 
   WimshBurst* burst = new WimshBurst;
