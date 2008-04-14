@@ -124,7 +124,7 @@ public:
 	//! We sent out some data on a link (i.e. negative backlog).
 	virtual void sent (WimaxNodeId nexthop, unsigned int bytes) = 0;
 
-	vittual void sent (int size) {}
+	virtual void sent (int size) {}
 
 	virtual int ReadyByte() {return 0;}
 

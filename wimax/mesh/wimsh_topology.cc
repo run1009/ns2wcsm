@@ -494,20 +494,20 @@ WimshTopologySimple::TreeGenerate()
 
   hops.resize(nodeNum);
   cschSequence.resize(nodeNum);
-  Sequence.resize(nodeNum);
+  SequenceVec.resize(nodeNum);
 
   color.resize(nodeNum);
   d.resize(nodeNum);
-  parent.resize(nodeNum);
+  parentVec.resize(nodeNum);
   
   for(int i = 0; i < nodeNum; ++i) {
     color[i] = 0;
     d[i] = 0;
-    parent[i] = -1;
+    parentVec[i] = -1;
   }
   //! hereafter we assume bs index is 0
   color[0] = 1;
-  parent[0] = -1;
+  parentVec[0] = -1;
   std::queue<int> q;
   queue.push(0);
   while(!queue.empty()) {
@@ -519,7 +519,7 @@ WimshTopologySimple::TreeGenerate()
 	  color[i] = 1;
 	  d[i] = d[u] + 1;
 	  if(maxHop < d[i]) maxHop = d[i];
-	  parent[i] = u;
+	  parentVec[i] = u;
 	  queue.push(i);
 	}
       }
@@ -528,7 +528,7 @@ WimshTopologySimple::TreeGenerate()
   }
 
   // use the vector d to update the hops
-  totalHops = maxHop;
+  totalHopsNum = maxHop;
   for(int i = 0;i < d.size(); ++i) hops[i] = d[i];
 
   // compute the transmit csch sequence
@@ -541,7 +541,7 @@ WimshTopologySimple::TreeGenerate()
   }
   Sequence[0] = 0; //bs don't need to request
   for(int i = 0;i < cschSequence.size();++i)
-    Sequence[cschSequence[i]] = i + 1;
+    SequenceVec[cschSequence[i]] = i + 1;
 
   //pluge the edges that don't exist in tree
   for(int i = 0; i < connectivity_.getRows(); ++i) {
@@ -550,8 +550,8 @@ WimshTopologySimple::TreeGenerate()
     }
   }
   for(int i = 1; i < parent.size(); ++i) {
-    connectivity_.at(i,parent[i]) = 1;
-    connectivity_at(parent[i],i) = 1;
+    connectivity_.at(i,parentVec[i]) = 1;
+    connectivity_at(parentVec[i],i) = 1;
   }
 
   //compute the number of children that the node has
@@ -559,6 +559,6 @@ WimshTopologySimple::TreeGenerate()
   for(int i = 0; i < childNum.size(); ++i)
     childNum[i] = 0;
   for(int i = 0; i < childNum.size(); ++i)
-    for(int j = 0; j < parent.size(); ++j)
-      if(parent[j] == i) childNum[i]++;
+    for(int j = 0; j < parentVec.size(); ++j)
+      if(parentVec[j] == i) childNum[i]++;
 }

@@ -27,6 +27,7 @@
 
 #include <rng.h>
 
+
 //! Fair round robin bandwidth manager for 802.16. Single-radio only.
 /*!
   :TODO: more documentation. Much more.
@@ -293,7 +294,7 @@ public:
 	  */
 	void schedule (WimshMshDsch* dsch);
 
-	void schedule (WImshMshCsch* csch);
+	void schedule (WimshMshCsch* csch);
 
 	//! Resize the internal data structures based on the number of neighbors.
 	void initialize ();

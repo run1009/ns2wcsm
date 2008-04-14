@@ -169,6 +169,7 @@ protected:
 	//! Election procedure called by handle().
 	void electionNent ();
 
+	int electionCsch ();
 	void electionCsch (WimshMshCsch* csch);
 	
 	//! Fill the IE about myself with scheduling information.

@@ -140,7 +140,7 @@ WimshCoordinatorStandard::start ()
 	//different node has different initial nextCschSlot_
 	int macId = mac_->nodeId();
 	nextCschSlot_ = mac_->topology()->Sequence(macId) % C;
-	nextCschFrame_ = mac->topology()->Sequence(macId) / C;
+	nextCschFrame_ = mac_->topology()->Sequence(macId) / C;
 
 	timer_.start (0);
 }
@@ -433,8 +433,9 @@ WimshCoordinatorStandard::electionCsch (WimshMshCsch* csch)
   for(int i = 0; i < ChildCsch.size(); ++i) {
     std::list<WimshMshCsch::FlowEntry *>::iterator it;
     std::list<WimshMshCsch::FlowEntry *> flow = ChildCsch[i]->getFlowEntries();
-    for(it = flow.begin(); it != flow.end(); ++it)
-      csch->add(it);
+    for(it = flow.begin(); it != flow.end(); ++it) {
+      csch->add(*it);
+    }
     delete ChildCsch[i];
   }
   ChildCsch.clear();

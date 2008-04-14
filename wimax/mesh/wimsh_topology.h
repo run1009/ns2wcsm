@@ -165,9 +165,9 @@ class WimshTopologySimple : public WimshTopology {
 	int perMaxNode;
 	std::vector<int> hops;
 	std::vector<int> cschSequence;
-	std::vector<int> Sequence;
-	int totalHops;
-	std::vector<int> parent;
+	std::vector<int> SequenceVec;
+	int totalHopsNum;
+	std::vector<int> parentVec;
 	std::vector<int> childNum;
 public:
 	//! Create an empty topology object.
@@ -207,10 +207,10 @@ public:
 	
 	std::vector<int> &getHops() { return hops; }
 	std::vector<int> &getCschSequence() { return cschSequence; }
-	int Sequence(int i) { return Sequence[i]; }
-	int totalHops() { return totalHops; }
-	int parent(int id) { return parent[id]; }
-	std::vector<int> &getParent() { return parent; }
+	int Sequence(int i) { return SequenceVec[i]; }
+	int totalHops() { return totalHopsNum; }
+	int parent(int id) { return parentVec[id]; }
+	std::vector<int> &getParent() { return parentVec; }
 
 	int ChildNum(int id) {return childNum[id]; }
 protected:

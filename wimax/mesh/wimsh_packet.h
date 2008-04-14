@@ -424,12 +424,11 @@ public:
     }
     static unsigned size() { return 1;}
   };
-prviate:
-  std::list<FlowEntry*> flowEntries;
+
+  std::list<FlowEntry *> flowEntries;
   
   WimaxMacHeader hdr_;
   WimaxNodeId src_;
-  Type type_;
 public:
   WimshMshCsch() {
     // now it leaves blank
@@ -446,7 +445,6 @@ public:
 
   WimaxMacHeader& hdr() { return hdr_; }
   WimaxNodeId& src() {return src_; }
-  Type& type() {return type_; }
 
 };
 
