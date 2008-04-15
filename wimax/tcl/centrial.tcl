@@ -109,12 +109,11 @@ proc init {} {
 
 
 proc create_topology {} {
-    global ns opt node node topo defaultRNG invmap map
 
 
-
+    
     set topo_unused [new Topology]
-
+    
     set chan_unused [new Channel/WirelessChannel]
 
     $ns node-config -llType LL -macType WimshMac -adhocRouting DumbAgent
@@ -135,7 +134,9 @@ proc create_topology {} {
     set topo [new WimshTopology/Simple]
 
     #set topology nodes
+    set opt(nodes) 3
 
+    
 
 
     if { $opt(random-nodeid) == "on" } {
@@ -155,7 +156,7 @@ proc create_topology {} {
 		}
 	    }
 	}
-
+	
 	for{ set i 0 } { $i < $opt(nodes) } { incr i } {
 	    set invmap($map($i)) $i
 	}
@@ -165,38 +166,29 @@ proc create_topology {} {
 	    set invmap($i) $i
 	}
     }
-
+    $topo connect $map(0) $map(1)
+    $topo connect $map(0) $map(2)
     
-
-
-
-
-
-
-
-
-
+    
     $topo intialize
 }
 
-
+#########create nodes
 proc create_nodes {} {
-    global ns opt node macmib node topo invmap phymib map
-
 
     set T $opt(sym-duration)
     set f [expr 1e-3 * $opt(sym-duration) * $opt(sym-perframe)]
-
-
+    
+    
     set phymib [new WimshPhyMib]
     $phymib symDuration $T
     $phymib frameDuration $f
     $phymib controlSlots $opt(control)
     $phymib cfg-interval $opt(cfg-interval)
     $phymib recompute
-
+    
     set macmib [new WimshMacMib]
-
+    
     $macmib phymib $phymib
     
     for {set j 0} {$j < $opt(channel)} {incr j} {
@@ -214,21 +206,27 @@ proc create_nodes {} {
 
 
     for {set i 0} {$i < $opt(nodes)} {incr i} {
-	set node($invmap($i)) [$ns node]
-
+	if { i == 0 } {
+	    $ns node-config -macType BSWimshMac
+	    set node($invmap($i)) [$ns node]
+	    $ns node-config -macType SSWimshMac
+	} else {
+	    set node($invmap($i)) [$ns node]
+	}
+	
 	set mac($i) [$node($invmap($i)) getMac 0]
 	
 	$mac($i) index $invmap($i)
-
+    
 	$mac($i) macmib $macmib
 	$mac($i) phymib $phymib
-	
+    
 	$mac($i) topology $topo
-
+    
 	for { set j 0 } {$j < $opt(channel) } { incr j } {
 	    $mac($i) channel $chan($j)
 	}
-
+    
 	for { set j 0 } {$j < $opt(radio) } { incr j } {
 	    set phy [new WimshPhy]
 	    $phy mac $mac($i)
@@ -237,16 +235,16 @@ proc create_nodes {} {
 	    $phy epsilon 5
 	    $mac($i) phy $phy
 	}
-	
+    
 	$mac($i) forwarding $opt(forwarding)
 	$mac($i) bwmanager $opt(bwmanager)
 	$mac($i) scheduler $opt(scheduler)
 	$mac($i) coordinator $opt(coordinator)
-
+    
 	#turn dsch off
 	$mac($i) coordinator nextxmttime -1
 	$mac($i) coordinator max-advertised $opt(max-advertised)
-
+    
     
 	#configure bwmanager
 	$mac($i) bwmanager availabilities $opt(availabilities)
@@ -258,19 +256,19 @@ proc create_nodes {} {
 	$mac($i) bwmanager round-duration $opt(bwm-round-duration)
 	$mac($i) bwmanager max-deficit $opt(max-deficit)
 	$mac($i) bwmanager max-backlog $opt(max-backlog)
-
+    
 	$mac($i) bwmanager dd-timeout $opt(dd-timeout)
 	$mac($i) bwmanager min-grant $opt(min-grant)
 	
 	$mac($i) bwmanager wm weight-flow $opt(weight-flow)
 	
-	
+    
 	#configure scheduler
 	$mac($i) scheduler size $opt(buffer)
-	
+    
 	$mac($i) msh-dsch-avg-bad $opt(msh-dsch-avg-bad)
 	$mac($i) msh-dsch-avg-good $opt(msh-dsch-avg-good)
-	
+    
 	$mac($i) initialize
     }
 }
@@ -281,10 +279,26 @@ proc create_nodes {} {
 proc create_connections {} {
     global ns opt macmib node topo
 
+    set app [new Application/Traffic/CBR]
+    $app set packetSize_ 1000
+    $app set rate_ 100000
 
+    set agtsrc [new Agent/UDP]
+    set agtdst [new Agent/UDP]
 
+    $agtsrc set class_ 0
 
-
+    $ns at 2.1 "$app start"
+    $ns at 9.1 "$app stop"
+    
+    $macmib crc 0 crc
+    $macmib priority 0 1
+    $macmib precedence 0 0
+    
+    $ns attach-agent $node(0) $agtsrc
+    $ns attach-agent $node(1) $agtdst
+    $ns connect $agtsrc $agtdst
+    $app attach-agent $agtsrc
 
 
 
