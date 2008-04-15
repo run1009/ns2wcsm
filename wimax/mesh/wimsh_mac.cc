@@ -201,7 +201,7 @@ public:
 
 static class BSWimshMacClass : public TclClass {
 public:
-  BSWimshMacClass() : TclClass("BSWimshMac") {}
+  BSWimshMacClass() : TclClass("WimshMac/BSWimshMac") {}
   TclObject* create(int, const char*const*) {
     return (new BSWimshMac);
   }
@@ -209,7 +209,7 @@ public:
 
 static class SSWimshMacClass : public TclClass {
 public:
-  SSWimshMacClass() : TclClass("SSWimshMac") {}
+  SSWimshMacClass() : TclClass("WimshMac/SSWimshMac") {}
   TclObject* create(int,const char*const*) {
     return (new SSWimshMac);
   }
