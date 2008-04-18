@@ -275,7 +275,7 @@ protected:
 	//! Minimum grant size, in OFDM symbols, preamble not included. Default = 1.
 	unsigned int minGrant_;
 
-	unsigned int backlog_;
+	//unsigned int backlog_;
 	
 
 public:
@@ -306,13 +306,13 @@ public:
 	//! We have some new data to send out on a link.
 	void backlog (WimaxNodeId nexthop, unsigned int bytes);
 
-	void backlog(int size);
+	//void backlog(int size);
 
 	//! We sent out some data on a link (i.e. negative backlog).
 	void sent (WimaxNodeId nexthop, unsigned int bytes);
 
 
-	void sent(int size);
+	//void sent(int size);
 
 	int ReadyByte();
 

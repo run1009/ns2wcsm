@@ -6,7 +6,8 @@ set opt(radio)		1
 
 set opt(chan-data-per)	0
 set opt(chan-ctrl-per)	0
-set opt(propagation)	4
+#set opt(propagation)	4
+set opt(propagation)	0
 
 set opt(sym-duration)	20
 set opt(sym-perframe)	500
@@ -72,7 +73,7 @@ set opt(prfndx) {}
 
 
 set opt(warm) 2.0
-set opt(duration) 100.0
+set opt(duration) 10.0
 
 set opt(random-nodeid) "off"
 
@@ -261,6 +262,7 @@ proc create_nodes {} {
 	$mac($i) coordinator nextxmttime -1
 	$mac($i) coordinator max-advertised $opt(max-advertised)
     
+	$mac($i) coordinator mode "xmtunaware"
     
 	#configure bwmanager
 	$mac($i) bwmanager availabilities $opt(availabilities)
@@ -311,33 +313,33 @@ proc create_connections {} {
     $macmib priority 0 1
     $macmib precedence 0 0
     
-    $ns attach-agent $node(0) $agtsrc
-    $ns attach-agent $node(1) $agtdst
+    $ns attach-agent $node(1) $agtsrc
+    $ns attach-agent $node(2) $agtdst
     $ns connect $agtsrc $agtdst
     $app attach-agent $agtsrc
 
     
 
 
-    set app1 [new Application/Traffic/CBR]
-    $app1 set packetSize_ 1000
-    $app1 set rate_ 100000
+    #set app1 [new Application/Traffic/CBR]
+    #$app1 set packetSize_ 1000
+    #$app1 set rate_ 100000
     
-    set agtsrc1 [new Agent/UDP]
-    set agtdst1 [new Agent/UDP]
-    $agtsrc1 set class_ 1
+   # set agtsrc1 [new Agent/UDP]
+    #set agtdst1 [new Agent/UDP]
+    #$agtsrc1 set class_ 1
     
-    $ns at 3.1 "$app1 start"
-    $ns at 8.0 "$app1 stop"
+   # $ns at 3.1 "$app1 start"
+   # $ns at 8.0 "$app1 stop"
 
-    $macmib crc 1 crc
-    $macmib priority 1 1
-    $macmib precedence 1 0
+    #$macmib crc 1 crc
+    #$macmib priority 1 1
+    #$macmib precedence 1 0
 
-    $ns attach-agent $node(0) $agtsrc1
-    $ns attach-agent $node(2) $agtdst1
-    $ns connect $agtsrc1 $agtdst1
-    $app1 attach-agent $agtsrc1
+   # $ns attach-agent $node(0) $agtsrc1
+   # $ns attach-agent $node(2) $agtdst1
+   # $ns connect $agtsrc1 $agtdst1
+   # $app1 attach-agent $agtsrc1
 }
 
 

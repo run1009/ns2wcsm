@@ -24,6 +24,9 @@
 #include <vector>
 
 #include <wimax_packet.h>
+#include <wimsh_phy.h>
+
+class WimshPhyMib;
 
 //! MSH-DSCH control message. We assume coordinated message scheduling.
 /*!
@@ -440,7 +443,7 @@ public:
   unsigned int &getFlowSE() { return flowScaleExponent; }
   void add(FlowEntry* flow) { flowEntries.push_back(flow); }
   //int bytes
-  int size() { return (4 + flowEntries.size() ) ; }
+  int size() { return WimshPhyMib::alpha[0] * 7;} //let csch pass in one control slot, 7 symbols
   //TODO:size() more about
 
   WimaxMacHeader& hdr() { return hdr_; }

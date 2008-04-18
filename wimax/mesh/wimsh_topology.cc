@@ -92,6 +92,7 @@ int WimshTopologySimple::command (int argc, const char*const* argv)
     */	 
 	else if ( argc == 2 && strcmp (argv[1], "initialize") == 0 ) {
 		recompute ();
+		TreeGenerate();
 		return TCL_OK;
 	}
 	else if ( argc == 3 && strcmp(argv[1],"MaxNode") == 0) {
@@ -501,7 +502,7 @@ WimshTopologySimple::TreeGenerate()
   d.resize(nodeNum);
   parentVec.resize(nodeNum);
   
-  for(int i = 0; i < nodeNum; ++i) {
+  for(unsigned i = 0; i < nodeNum; ++i) {
     color[i] = 0;
     d[i] = 0;
     parentVec[i] = -1;
@@ -514,7 +515,7 @@ WimshTopologySimple::TreeGenerate()
   while(!q.empty()) {
     int u = q.front();
     q.pop();
-    for(int i = 0; i < nodeNum; ++i) {
+    for(unsigned i = 0; i < nodeNum; ++i) {
       if(connectivity_.at(i,u)) {
 	if(color[i] == 0) {
 	  color[i] = 1;
@@ -530,36 +531,36 @@ WimshTopologySimple::TreeGenerate()
 
   // use the vector d to update the hops
   totalHopsNum = maxHop;
-  for(int i = 0;i < d.size(); ++i) hops[i] = d[i];
+  for(unsigned i = 0;i < d.size(); ++i) hops[i] = d[i];
 
   // compute the transmit csch sequence
   // the content of cschSequence[i] is at i time, the cschSequence[i] transmit the csch
-  int current = 0;
+  unsigned current = 0;
   for(int i = maxHop; i > 0; i--) {
-    for(int j = 0; j < hops.size(); j++) {
+    for(unsigned j = 0; j < hops.size(); j++) {
       if ( hops[j] == i ) cschSequence[current++] = j;
     }
   }
-  SequenceVec[0] = 0; //bs don't need to request
-  for(int i = 0;i < cschSequence.size();++i)
-    SequenceVec[cschSequence[i]] = i + 1;
+  SequenceVec[0] = -1; //bs don't need to request
+  for(unsigned i = 0;i < cschSequence.size();++i)
+    SequenceVec[cschSequence[i]] = i;
 
   //pluge the edges that don't exist in tree
-  for(int i = 0; i < connectivity_.getRows(); ++i) {
-    for(int j = 0; j < connectivity_.getRows(); ++j) {
+  for(unsigned i = 0; i < connectivity_.getRows(); ++i) {
+    for(unsigned j = 0; j < connectivity_.getRows(); ++j) {
       connectivity_.at(i,j) = 0;
     }
   }
-  for(int i = 1; i < parentVec.size(); ++i) {
+  for(unsigned i = 1; i < parentVec.size(); ++i) {
     connectivity_.at(i,parentVec[i]) = 1;
     connectivity_.at(parentVec[i],i) = 1;
   }
 
   //compute the number of children that the node has
   childNum.resize(nodeNum);
-  for(int i = 0; i < childNum.size(); ++i)
+  for(unsigned i = 0; i < childNum.size(); ++i)
     childNum[i] = 0;
   for(int i = 0; i < childNum.size(); ++i)
-    for(int j = 0; j < parentVec.size(); ++j)
+    for(unsigned j = 0; j < parentVec.size(); ++j)
       if(parentVec[j] == i) childNum[i]++;
 }

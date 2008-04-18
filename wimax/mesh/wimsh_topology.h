@@ -161,8 +161,8 @@ class WimshTopologySimple : public WimshTopology {
 	RNG rng;
 	
 
-	int MaxNode;
-	int perMaxNode;
+	unsigned MaxNode;
+	unsigned perMaxNode;
 	std::vector<int> hops;
 	std::vector<int> cschSequence;
 	std::vector<int> SequenceVec;

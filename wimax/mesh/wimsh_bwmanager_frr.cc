@@ -58,7 +58,7 @@ WimshBwManagerFairRR::WimshBwManagerFairRR (WimshMac* m) :
 	ddTimer_               = 0;
 	minGrant_              = 1;
 	
-	backlog_	       = 0;
+	//backlog_	       = 0;
 }
 
 int
@@ -240,8 +240,8 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
   //now just for SS
   int N = mac_->phyMib()->slotPerFrame();
   if ( !csch->getFlag() ) {
-    unsigned int flowSE = csch->getFlowSE();
-    std::list<WimshMshCsch::FlowEntry*> flow = csch->getFlowEntries();
+    //unsigned int flowSE = csch->getFlowSE();
+    std::list<WimshMshCsch::FlowEntry*> &flow = csch->getFlowEntries();
     std::list<WimshMshCsch::FlowEntry*>::iterator it = flow.begin();
     for(;it != flow.end(); ++it) {
       //mark the minislot
@@ -277,6 +277,9 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 	  grants_[dframe][i%N] =  true;
 	  channel_[dframe][i%N] = dchannel;
 	  dst_[dframe][i%N] = (*it)->towardId;
+	  //alloc to child by myself
+	//get children, and the buffer ,alloc slots to them,from this node to children
+	//pass it to scheduler,because it know the flow
 	}
       }
     }
@@ -570,16 +573,50 @@ WimshBwManagerFairRR::schedule (WimshMshDsch* dsch)
 void 
 WimshBwManagerFairRR::schedule (WimshMshCsch* csch)
 {
-  if (backlog_) {
+  csch->getFlag() = true;
+  //int backlog_ = 0;
+  /*
+  int up = 0, down = 0;
+  int id = mac_->nodeId();
+  std::vector<int> parents = mac_->topology()->getParent();
+  for(unsigned i = 0;i < neigh_.size();++i) {
+  	if(mac_->ndx2neigh(i) == parents[id]) up += neigh_[i].backlog_;
+	else down += neigh_[i].backlog_;
+  }
+  */
+  //for(unsigned i = 0;i < neigh_.size(); ++i) backlog_ += neigh_[i].backlog_;
+  int id = mac_->nodeId();
+  int parents = mac_->topology()->parent(id);
+/*
+  int up = 0,down = 0;
+  for(unsigned i = 0;i < neigh_.size(); i++) {
+  	if(parents == mac_->ndx2neigh(i) ) up += neigh_[i].backlog_;
+	else down += neigh_[i].backlog_;
+  }
+  if (up + down) {
     //fit the csch
     //compute the transmit time, and fit it into upFlow
-    unsigned flowex = csch->getFlowSE();
-    unsigned rate = (1<<(14 + flowex)) / 8;
-    unsigned up = backlog_ / rate;
-    WimshMshCsch::FlowEntry * fe = new WimshMshCsch::FlowEntry;
-    fe->id = mac_->nodeId();
-    fe->upFlow = up;
-    csch->add(fe);
+    //signed rate = (1<<(14 + csch->getFlowSE())) / 8;
+    
+    WimshMshCsch::FlowEntry * entry = new WimshMshCsch::FlowEntry;
+    entry->id = id;
+    entry->upFlow = up;
+    entry->downFlow = down;
+    csch->add(entry);
+  }
+  */
+  for(unsigned i = 0;i < neigh_.size(); i++) {
+	if(neigh_[i].backlog_) {
+		WimshMshCsch::FlowEntry * entry = new WimshMshCsch::FlowEntry;
+		entry->id = id;
+		if(parents == mac_->ndx2neigh(i) ) {
+			entry->upFlow = neigh_[i].backlog_;
+		} else {
+			entry->downFlow = neigh_[i].backlog_;
+			entry->towardId = mac_->ndx2neigh(i);
+		}
+		csch->add(entry);
+	}
   }
 }
 
@@ -1447,9 +1484,10 @@ WimshBwManagerFairRR::ReadyByte()
   int total = 0;
   int alpha = WimshPhyMib::alpha[0];
   //std::vector<int> hops = mac_->topology()->getHops();
-  for(int i = 0;i < neigh_.size(); ++i) {
-    neigh_slot[i] = 1 + ((neigh_[i].backlog_ - 1) / alpha) / mac_->phyMib()->symPerSlot();
-    total += neigh_slot[i];
+  for(unsigned i = 0;i < neigh_.size(); ++i) {
+  	if(neigh_[i].backlog_ == 0) neigh_slot[i] = 0;
+    	else neigh_slot[i] = 1 + (neigh_[i].backlog_ / alpha) / mac_->phyMib()->symPerSlot();
+    	total += neigh_slot[i];
   }
   return total;
 }
@@ -1457,7 +1495,7 @@ WimshBwManagerFairRR::ReadyByte()
 void 
 WimshBwManagerFairRR::allocSlot(WimshMshCsch * csch, int& currentFrame, int& currentSlot, double scale)
 {
-  for(int i = 0; i < neigh_.size(); ++i) {
+  for(unsigned i = 0; i < neigh_.size(); ++i) {
     //if(neigh_[i] != 0) {
     WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
     entry->id = mac_->nodeId();
@@ -1475,13 +1513,13 @@ WimshBwManagerFairRR::allocSlot(WimshMshCsch * csch, int& currentFrame, int& cur
   }
   //}
 }
-
+/*
 void 
 WimshBwManagerFairRR::backlog(int size)
 {
   backlog_ += size;
 }
-
+*/
 void
 WimshBwManagerFairRR::sent (WimaxNodeId nexthop, unsigned int bytes)
 {
@@ -1491,13 +1529,13 @@ WimshBwManagerFairRR::sent (WimaxNodeId nexthop, unsigned int bytes)
 	// remove the amount of received bytes from the backlog of this output link
 	neigh_[ndx].backlog_ -= bytes;
 }
-
+/*
 void 
 WimshBwManagerFairRR::sent(int size)
 {
   backlog_ -= size;
 }
-
+*/
 void
 WimshBwManagerFairRR::printDataStructures (FILE* os)
 {

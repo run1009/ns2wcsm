@@ -42,12 +42,12 @@ WimshCoordinator::WimshCoordinator (WimshMac* m) : mac_(m), timer_ (this)
 	nextNentFrame_ = NEVER;
   */
   //we don't need the ditribution scheduling working
-  nextDschSlot_ = -1;
-  nextDschFrame_ = -1;
-  nextNcfgSlot_ = -1;
-  nextNcfgFrame_ = -1;
-  nextNentSlot_ = -1;
-  nextNentFrame_ = -1;
+  nextDschSlot_ = NEVER;
+  nextDschFrame_ = NEVER;
+  nextNcfgSlot_ = NEVER;
+  nextNcfgFrame_ = NEVER;
+  nextNentSlot_ = NEVER;
+  nextNentFrame_ = NEVER;
 
 	// todo the nextCschSlot_
 	nextCschSlot_ = 0;
@@ -157,6 +157,8 @@ WimshCoordinator::handle ()
 	  } else {
 	    //BS goes here
 	    //get the csch message
+	    WimshMshCsch* csch = NULL;
+	    electionCsch(csch);
 	    timer_.start(phyMib->controlSlotDuration());
 	    int startFrame = electionCsch();
 	    //data slot from startFrame to bs next csch frame
@@ -180,7 +182,7 @@ WimshCoordinator::handle ()
 	} else {
 		// if the next opportunity is within this frame, set the
 		// timer to expire at that slot
-
+/*
 		int slot = -1;
 		if ( nextDschFrame_ == mac_->frame() ) {
 			slot = nextDschSlot_;
@@ -195,10 +197,10 @@ WimshCoordinator::handle ()
 		// set the timer to expire at the end of this control frame
 		if ( slot >= 0 ) slot -= curslot;
 		else slot = C - curslot;
-
+*/
 		// start the timer
-		timer_.start ( slot * phyMib->controlSlotDuration() );
-
+		//timer_.start ( slot * phyMib->controlSlotDuration() );
+		timer_.start(phyMib->controlSlotDuration());
 		// in any case, tell the MAC to listen for control messages
 		mac_->setControlChannel (wimax::RX);
 	}

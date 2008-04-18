@@ -896,13 +896,10 @@ WimshMac::recvBurst (WimshBurst* burst)
 		if ( ! burst->error() ) recvMshNent (burst->mshNent(), burst->txtime());
 	} else if ( burst->type() == wimax::MSHCSCH ) {
 	  if( ! burst->error() ) recvMshCsch( burst->mshCsch(), burst->txtime());
+	  /////////////////shit I have defined twice ,one day waste
 	//
 	// manage a data burst
 	//
-	} else if ( burst->type() == wimax::MSHCSCH ) {
-	  if ( ! burst->error() ) recvMshCsch (burst->mshCsch(), burst->txtime());
-
- 
 	} else {
 
 		// remove PDUs one by one from the burst
@@ -992,7 +989,7 @@ WimshMac::transmit (unsigned int range, WimaxNodeId dst, unsigned int channel)
 	// compute the amount of bytes that fit into the range towards dst
 	// we account for the physical preamble that must be transmitted
 	unsigned int bytes = slots2bytes (ndx, range, true);
-
+	//unsigned int bytes = slots2bytes(ndx,range);
 	// create a new burst into the fragmentation buffer
 	bool room = fragbuf_[ndx]->newBurst (profile_[ndx], bytes);
 
@@ -1073,8 +1070,10 @@ void
 BSWimshMac::recvMshCsch(WimshMshCsch* csch, double txtime) {
   assert (initialized );
   //store the csch of children
-  if( csch->getFlag() )
-    message.push_back(csch);
+  if( csch->getFlag() ) {
+    WimshMshCsch * tcsch = new WimshMshCsch(*csch);
+    message.push_back(tcsch);
+  }
 }
 
 
@@ -1090,8 +1089,7 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   csch->getFlag() = false;
   //burst->addMshCsch (csch);
   //compute the frame that the grant message reaches the end node
-  int flowSe = 0;
-  csch->getFlowSE() = flowSe;
+  csch->getFlowSE() = 0;
 
   int frames = endFrame - startFrame;
 
@@ -1112,17 +1110,17 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   //traSlot.resize(topology_->numNodes());
   //dst.resize(topology_->numNodes());
   
-  for(int i = 0; i < reqSlot.size() ; ++i) {
+  for(unsigned i = 0; i < reqSlot.size() ; ++i) {
     reqSlot[i] = 0;
     //tranSlot[i] = 0;
   }
   int totalUpByte = 0;
-  for(int i = 0; i < message.size() ; ++i) {
+  for(unsigned i = 0; i < message.size() ; ++i) {
     WimshMshCsch *childCsch = message[i];
-    std::list<WimshMshCsch::FlowEntry*> flow = childCsch->getFlowEntries();
+    std::list<WimshMshCsch::FlowEntry*> &flow = childCsch->getFlowEntries();
     std::list<WimshMshCsch::FlowEntry*>::iterator it;
     for(it = flow.begin(); it != flow.end(); ++it) {
-      totalUpByte += (*it)->upFlow * hops[(*it)->id];
+      totalUpByte += ((*it)->upFlow) * hops[(*it)->id];
       reqSlot[(*it)->id] += (*it)->upFlow;
     }
   }
@@ -1138,15 +1136,16 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   // no preamble
   //int NeededSlot = 1 + (( totalByte - 1) / alpha) / phyMib_->symPerSlot();
   int NeededSlot = 0;
-  for(int i = 1; i < reqSlot.size(); ++i) {
-    reqSlot[i] = 1 + ((reqSlot[i] -1) / alpha) / phyMib_->symPerSlot();
-    NeededSlot += reqSlot[i] * hops[i];
+  for(unsigned i = 1; i < reqSlot.size(); ++i) {
+  	if(reqSlot[i]) reqSlot[i] = 1 + ((reqSlot[i] -1) / alpha) / phyMib_->symPerSlot();
+   	NeededSlot += reqSlot[i] * hops[i];
   }
   int avaliableSlot = frames * phyMib_->slotPerFrame();
 
   std::queue<int> allocSeq;
-  double scale = (double) avaliableSlot / NeededSlot;
-  if(scale - 1 > 1e-6) scale = 1;
+  double scale;
+  if(NeededSlot == 0) scale = 0;
+  else scale = (double) avaliableSlot / NeededSlot;
     // from SS to BS
   int totalHops = topology_->totalHops();
   for(int i = totalHops; i > 0; --i)
@@ -1185,24 +1184,29 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   std::vector<int> dst;
   
   for(int i = 0;i < message.size(); ++i) {
-    std::list<WimshMshCsch::FlowEntry*> flow = message[i]->getFlowEntries();
+    WimshMshCsch *cschChild = message[i];
+    std::list<WimshMshCsch::FlowEntry*> &flow = cschChild->getFlowEntries();
     std::list<WimshMshCsch::FlowEntry*>::iterator it;
-    for(it = flow.begin();it != flow.end(); ++it) {
-      for(int j = 0;j < tranSlot.size(); ++j) {
-	if((*it)->id == id[j] && (*it)->towardId == dst[j])
-	  tranSlot[j] += (*it)->downFlow;
-	else {
+    for(it = flow.begin();it != flow.end(); it++) {
+	unsigned j;
+      	for(j = 0;j < tranSlot.size(); ++j) {
+		if((*it)->id == id[j] && (*it)->towardId == dst[j]) {
+		//if((*it)->id == id[j]) {
+	  		tranSlot[j] += (*it)->downFlow;
+	  		break;
+		}
+     	}
+	if(j == tranSlot.size() ) {
 	  id.push_back((*it)->id);
 	  tranSlot.push_back((*it)->downFlow);
 	  dst.push_back((*it)->towardId);
-	}
       }
     }
   }
-  for(int i = 0;i < tranSlot.size(); ++i)
-    tranSlot[i] = 1 + ((tranSlot[i] - 1) / alpha) / phyMib_->symPerSlot();
+  for(unsigned i = 0;i < tranSlot.size(); ++i)
+  	if(tranSlot[i]) tranSlot[i] = 1 + ((tranSlot[i] - 1) / alpha) / phyMib_->symPerSlot();
   
-  for(int i = 0;i < id.size(); ++i) {
+  for(unsigned i = 0;i < id.size(); ++i) {
     WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
     entry->id = id[i];
     entry->towardId = dst[i];
@@ -1257,10 +1261,11 @@ SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
     for(int i = 0; i < child.size(); ++i) {
       setControlChannel(wimax::TX);
       WimshBurst *burst = new WimshBurst;
-      burst->addMshCsch (csch);
+	WimshMshCsch *tcsch = new WimshMshCsch(*csch);
+      burst->addMshCsch (tcsch);
       phy_[0]->sendBurst (burst);
     }
-    child.clear();
+    //child.clear();
   }
 }
 

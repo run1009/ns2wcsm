@@ -114,7 +114,7 @@ public:
 	//! Indicate some additional on a link towards a neighbor.
 	virtual void backlog (WimaxNodeId nexthop, unsigned int bytes ) = 0;
 
-	virtual void backlog (int size) {}
+	//virtual void backlog (int size) {}
 
 
 	//! Indicate some data was received.
@@ -124,7 +124,7 @@ public:
 	//! We sent out some data on a link (i.e. negative backlog).
 	virtual void sent (WimaxNodeId nexthop, unsigned int bytes) = 0;
 
-	virtual void sent (int size) {}
+	//virtual void sent (int size) {}
 
 	virtual int ReadyByte() {return 0;}
 

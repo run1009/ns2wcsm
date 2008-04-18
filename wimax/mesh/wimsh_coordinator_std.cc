@@ -134,13 +134,21 @@ WimshCoordinatorStandard::start ()
 	nextNcfgFrame_  = myNcfg_.nextXmtTime_ / ( C - 1 );
 	nextNcfgFrame_ += T * nextNcfgFrame_;
 
-	nextNentSlot_   = 0;
-	nextNentFrame_  = 0;
-	
+	//nextNentSlot_   = NEVER;
+	//nextNentFrame_  = NEVER;
+
+	int nodeNum = mac_->topology()->numNodes();
 	//different node has different initial nextCschSlot_
 	int macId = mac_->nodeId();
-	nextCschSlot_ = mac_->topology()->Sequence(macId) % C;
-	nextCschFrame_ = mac_->topology()->Sequence(macId) / C;
+	if(macId) {
+		nextCschSlot_ = mac_->topology()->Sequence(macId) % C;
+		nextCschFrame_ = mac_->topology()->Sequence(macId) / C;
+	} else {
+		//bs goes here
+		nextCschSlot_ = 0;
+		if((nodeNum - 1) % C == 0) nextCschFrame_ = (nodeNum - 1) / C;
+		else nextCschFrame_ = (nodeNum - 1) / C + 1;
+	}
 
 	timer_.start (0);
 }
@@ -296,7 +304,8 @@ WimshCoordinatorStandard::recvMshCsch (WimshMshCsch *csch, double txtime)
   }
   */
   //collect the children's csch request,combinate them into one csch
-  ChildCsch.push_back(csch);
+  WimshMshCsch *tcsch = new WimshMshCsch(*csch);
+  ChildCsch.push_back(tcsch);
   //if(ChildCsch.size() == mac_->topology()->ChildNum(mac_->nodeId()))
   //completed = true;
   //else completed = false;
@@ -418,27 +427,39 @@ WimshCoordinatorStandard::electionCsch (WimshMshCsch* csch)
 
 
   //compute the slot,BS and SS have the same method to compute the nextcsch
+  
   int C = phyMib_->controlSlots();
   int nodeNum = mac_->topology()->numNodes();
   int seq = mac_->topology()->Sequence(mac_->nodeId());
   int slot = currentCtrlSlotCsch();
   int totalHops = mac_->topology()->totalHops();
-  slot += totalHops;
-  slot += nodeNum - 1 - seq + 1;
-  nextCschSlot_ = slot % C;
-  nextCschFrame_ = slot / C;
-  //compute the next slot and next time
-  //nextCschSlot_ ++;
-  //nextCschFrame_ ++;
-  for(int i = 0; i < ChildCsch.size(); ++i) {
-    std::list<WimshMshCsch::FlowEntry *>::iterator it;
-    std::list<WimshMshCsch::FlowEntry *> flow = ChildCsch[i]->getFlowEntries();
-    for(it = flow.begin(); it != flow.end(); ++it) {
-      csch->add(*it);
-    }
-    delete ChildCsch[i];
-  }
-  ChildCsch.clear();
+  //slot += totalHops;
+  if(mac_->nodeId() != 0) {
+  	csch->getFlowSE() = 0;
+  	slot += nodeNum - 1 - seq - 1; //request completed
+  	//nextCschSlot_ = slot % C;
+  	nextCschSlot_ = seq % C;
+  	nextCschFrame_ = 1 + slot / C;
+  	nextCschFrame_ += 1 + totalHops / C;
+  	//compute the next slot and next time
+  	//nextCschSlot_ ++;
+  	//nextCschFrame_ ++;
+  	for(int i = 0; i < ChildCsch.size(); ++i) {
+    		std::list<WimshMshCsch::FlowEntry *>::iterator it;
+    		std::list<WimshMshCsch::FlowEntry *> &flow = ChildCsch[i]->getFlowEntries();
+    		for(it = flow.begin(); it != flow.end(); ++it) {
+			WimshMshCsch::FlowEntry *entry = new WimshMshCsch::FlowEntry(**it);
+      			csch->add(entry);
+    		}
+    		delete ChildCsch[i];
+  	}
+  	ChildCsch.clear();
+  	} else {
+		nextCschSlot_ = 0;
+		if((nodeNum - 1) % C == 0) nextCschFrame_ += (nodeNum - 1) / C;
+		else nextCschFrame_ += (nodeNum - 1) / C + 1;
+		nextCschFrame_ += 1 + totalHops / C;
+  	}
 }
 
 
