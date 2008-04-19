@@ -1141,11 +1141,14 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
    	NeededSlot += reqSlot[i] * hops[i];
   }
   int avaliableSlot = frames * phyMib_->slotPerFrame();
-
+  
+  if(totalDownByte) NeededSlot += 1 + ((totalDownByte -1) / alpha) / phyMib_->symPerSlot();
+  
   std::queue<int> allocSeq;
   double scale;
   if(NeededSlot == 0) scale = 0;
   else scale = (double) avaliableSlot / NeededSlot;
+  if(scale - 1.0 > 1e-6) scale = 1;
     // from SS to BS
   int totalHops = topology_->totalHops();
   for(int i = totalHops; i > 0; --i)
@@ -1159,7 +1162,7 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
     int p = allocSeq.front();
     allocSeq.pop();
     int req =(int) ( reqSlot[p] * scale );
-    while(p) {
+    while(p && req) {
       WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
       entry->id = p;
       entry->towardId = parent[p];
@@ -1189,8 +1192,9 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
     std::list<WimshMshCsch::FlowEntry*>::iterator it;
     for(it = flow.begin();it != flow.end(); it++) {
 	unsigned j;
+	if ((*it)->downFlow == 0) continue;
       	for(j = 0;j < tranSlot.size(); ++j) {
-		if((*it)->id == id[j] && (*it)->towardId == dst[j]) {
+		if( (*it)->id == id[j] && (*it)->towardId == dst[j]) {
 		//if((*it)->id == id[j]) {
 	  		tranSlot[j] += (*it)->downFlow;
 	  		break;
@@ -1226,6 +1230,9 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   //hLastCsch_ = NOW;
   //do the work that BS shall allocate the minislot to SS
 
+
+  bwmanager_->recvMshCsch(csch);
+  
   setControlChannel(wimax::TX);
   burst->addMshCsch(csch);
   phy_[0]->sendBurst (burst);

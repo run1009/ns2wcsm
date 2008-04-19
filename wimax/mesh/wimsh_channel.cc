@@ -178,6 +178,9 @@ WimshChannel::handle (WimshBurst* burst)
 
 	// dispatch the burst to all listening PHYs
 	for ( ; it != phymap_.end() ; ++it ) {
+		//for debug
+		wimax::ChannelStatus status = it->second;
+		WimshPhy * phy = it->first;
 		if ( it->second == wimax::RX ) it->first->recvBurst (burst);
 	}
 

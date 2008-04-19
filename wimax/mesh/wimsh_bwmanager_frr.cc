@@ -237,7 +237,7 @@ WimshBwManagerFairRR::recvMshDsch (WimshMshDsch* dsch)
 void 
 WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 {
-  //now just for SS
+  //now just for SS,also compatiable bs
   int N = mac_->phyMib()->slotPerFrame();
   if ( !csch->getFlag() ) {
     //unsigned int flowSE = csch->getFlowSE();
@@ -1495,23 +1495,23 @@ WimshBwManagerFairRR::ReadyByte()
 void 
 WimshBwManagerFairRR::allocSlot(WimshMshCsch * csch, int& currentFrame, int& currentSlot, double scale)
 {
-  for(unsigned i = 0; i < neigh_.size(); ++i) {
-    //if(neigh_[i] != 0) {
-    WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
-    entry->id = mac_->nodeId();
-    entry->towardId = mac_->ndx2neigh(i);
-    entry->dchannel = 0;
-    entry->dframe = currentFrame;
-    entry->dstart = currentSlot;
-    entry->dfrange = (int) (neigh_slot[i] * scale);
-    csch->add(entry);
-    currentSlot += (int)(neigh_slot[i] * scale);
-    if(currentSlot >= mac_->phyMib()->slotPerFrame() ) {
-      currentFrame++;
-      currentSlot -= mac_->phyMib()->slotPerFrame();
-    }
-  }
-  //}
+  for(unsigned i = 0; i < neigh_slot.size(); ++i) {
+    if(neigh_slot[i] != 0) {
+    	WimshMshCsch::FlowEntry* entry = new WimshMshCsch::FlowEntry;
+    	entry->id = mac_->nodeId();
+    	entry->towardId = mac_->ndx2neigh(i);
+    	entry->dchannel = 0;
+    	entry->dframe = currentFrame;
+    	entry->dstart = currentSlot;
+    	entry->dfrange = (int) (neigh_slot[i] * scale);
+    	csch->add(entry);
+    	currentSlot += (int)(neigh_slot[i] * scale);
+    	if(currentSlot >= mac_->phyMib()->slotPerFrame() ) {
+      		currentFrame++;
+      		currentSlot -= mac_->phyMib()->slotPerFrame();
+    	}
+   }
+ }
 }
 /*
 void 

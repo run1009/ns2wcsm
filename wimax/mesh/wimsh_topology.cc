@@ -91,8 +91,8 @@ int WimshTopologySimple::command (int argc, const char*const* argv)
     * dump all the matrices to stderr
     */	 
 	else if ( argc == 2 && strcmp (argv[1], "initialize") == 0 ) {
-		recompute ();
 		TreeGenerate();
+		recompute ();
 		return TCL_OK;
 	}
 	else if ( argc == 3 && strcmp(argv[1],"MaxNode") == 0) {

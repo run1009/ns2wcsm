@@ -7,7 +7,7 @@ set opt(radio)		1
 set opt(chan-data-per)	0
 set opt(chan-ctrl-per)	0
 #set opt(propagation)	4
-set opt(propagation)	0
+set opt(propagation)	4
 
 set opt(sym-duration)	20
 set opt(sym-perframe)	500
