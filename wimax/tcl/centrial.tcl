@@ -146,7 +146,7 @@ proc create_topology {} {
     set topo [new WimshTopology/Simple]
     puts "create topo"
     #set topology nodes
-    set opt(nodes) 3
+    set opt(nodes) 5
 
     
 
@@ -181,6 +181,8 @@ proc create_topology {} {
     }
     $topo connect $map(0) $map(1)
     $topo connect $map(0) $map(2)
+    $topo connect $map(1) $map(3)
+    $topo connect $map(1) $map(4)
     
     puts "before init"
     $topo initialize
@@ -306,14 +308,14 @@ proc create_connections {} {
 
     $agtsrc set class_ 0
 
-    $ns at 2.1 "$app start"
+    $ns at 2 "$app start"
     $ns at 9.1 "$app stop"
     
     $macmib crc 0 crc
     $macmib priority 0 1
     $macmib precedence 0 0
     
-    $ns attach-agent $node(1) $agtsrc
+    $ns attach-agent $node(3) $agtsrc
     $ns attach-agent $node(2) $agtdst
     $ns connect $agtsrc $agtdst
     $app attach-agent $agtsrc
@@ -321,25 +323,25 @@ proc create_connections {} {
     
 
 
-    #set app1 [new Application/Traffic/CBR]
-    #$app1 set packetSize_ 1000
-    #$app1 set rate_ 100000
+    set app1 [new Application/Traffic/CBR]
+    $app1 set packetSize_ 1000
+    $app1 set rate_ 100000
     
-   # set agtsrc1 [new Agent/UDP]
-    #set agtdst1 [new Agent/UDP]
-    #$agtsrc1 set class_ 1
+    set agtsrc1 [new Agent/UDP]
+    set agtdst1 [new Agent/UDP]
+    $agtsrc1 set class_ 1
     
-   # $ns at 3.1 "$app1 start"
-   # $ns at 8.0 "$app1 stop"
+    $ns at 3.1 "$app1 start"
+    $ns at 8.0 "$app1 stop"
 
-    #$macmib crc 1 crc
-    #$macmib priority 1 1
-    #$macmib precedence 1 0
+    $macmib crc 1 crc
+    $macmib priority 1 1
+    $macmib precedence 1 0
 
-   # $ns attach-agent $node(0) $agtsrc1
-   # $ns attach-agent $node(2) $agtdst1
-   # $ns connect $agtsrc1 $agtdst1
-   # $app1 attach-agent $agtsrc1
+    $ns attach-agent $node(2) $agtsrc1
+    $ns attach-agent $node(4) $agtdst1
+    $ns connect $agtsrc1 $agtdst1
+    $app1 attach-agent $agtsrc1
 }
 
 

@@ -1258,17 +1258,19 @@ SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
   bwmanager_->recvMshCsch(csch);
   //forwarding_->recvMshCsch(csch);
   //pass the grant to children of the node
-  if(!csch->getFlag()) { 
+  if(!csch->getFlag() && csch->getTransmitId() == topology()->parent(nodeId())) { 
     std::vector<int> parent = topology()->getParent();
-    std::vector<int> child;
-    for(int i = 0; i < parent.size(); ++i) {
-      if (parent[i] == nodeId() )
-	child.push_back(i);
+    bool hasChild = false;
+    for(unsigned i = 0; i < parent.size(); ++i) {
+      if (parent[i] == nodeId() ) {
+	  	hasChild = true;
+		break;
+      	}
     }
-    for(int i = 0; i < child.size(); ++i) {
+    if(hasChild) {
       setControlChannel(wimax::TX);
       WimshBurst *burst = new WimshBurst;
-	WimshMshCsch *tcsch = new WimshMshCsch(*csch);
+      WimshMshCsch *tcsch = new WimshMshCsch(*csch);
       burst->addMshCsch (tcsch);
       phy_[0]->sendBurst (burst);
     }

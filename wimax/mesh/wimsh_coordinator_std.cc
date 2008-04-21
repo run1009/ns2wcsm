@@ -447,11 +447,12 @@ WimshCoordinatorStandard::electionCsch (WimshMshCsch* csch)
   	for(int i = 0; i < ChildCsch.size(); ++i) {
     		std::list<WimshMshCsch::FlowEntry *>::iterator it;
     		std::list<WimshMshCsch::FlowEntry *> &flow = ChildCsch[i]->getFlowEntries();
+		int id = ChildCsch[i]->getTransmitId();
     		for(it = flow.begin(); it != flow.end(); ++it) {
 			WimshMshCsch::FlowEntry *entry = new WimshMshCsch::FlowEntry(**it);
       			csch->add(entry);
     		}
-    		delete ChildCsch[i];
+    		//delete ChildCsch[i];
   	}
   	ChildCsch.clear();
   	} else {
