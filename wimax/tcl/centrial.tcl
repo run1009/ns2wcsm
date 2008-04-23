@@ -73,7 +73,7 @@ set opt(prfndx) {}
 
 
 set opt(warm) 2.0
-set opt(duration) 10.0
+set opt(duration) 20.0
 
 set opt(random-nodeid) "off"
 
@@ -146,7 +146,7 @@ proc create_topology {} {
     set topo [new WimshTopology/Simple]
     puts "create topo"
     #set topology nodes
-    set opt(nodes) 5
+    set opt(nodes) 11
 
     
 
@@ -183,7 +183,13 @@ proc create_topology {} {
     $topo connect $map(0) $map(2)
     $topo connect $map(1) $map(3)
     $topo connect $map(1) $map(4)
-    
+    $topo connect $map(2) $map(5)
+    $topo connect $map(3) $map(6)
+    $topo connect $map(3) $map(7)
+    $topo connect $map(3) $map(8)
+    $topo connect $map(5) $map(9)
+    $topo connect $map(5) $map(10)
+
     puts "before init"
     $topo initialize
     puts "after"
@@ -315,8 +321,8 @@ proc create_connections {} {
     $macmib priority 0 1
     $macmib precedence 0 0
     
-    $ns attach-agent $node(3) $agtsrc
-    $ns attach-agent $node(2) $agtdst
+    $ns attach-agent $node(8) $agtsrc
+    $ns attach-agent $node(10) $agtdst
     $ns connect $agtsrc $agtdst
     $app attach-agent $agtsrc
 
@@ -338,8 +344,8 @@ proc create_connections {} {
     $macmib priority 1 1
     $macmib precedence 1 0
 
-    $ns attach-agent $node(2) $agtsrc1
-    $ns attach-agent $node(4) $agtdst1
+    $ns attach-agent $node(9) $agtsrc1
+    $ns attach-agent $node(6) $agtdst1
     $ns connect $agtsrc1 $agtdst1
     $app1 attach-agent $agtsrc1
 }

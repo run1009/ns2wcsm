@@ -436,10 +436,18 @@ WimshCoordinatorStandard::electionCsch (WimshMshCsch* csch)
   //slot += totalHops;
   if(mac_->nodeId() != 0) {
   	csch->getFlowSE() = 0;
-  	slot += nodeNum - 1 - seq - 1; //request completed
+  	//slot += nodeNum - 1 - seq - 1; //request completed
+  	//slot += nodeNum - 1 - 1;
   	//nextCschSlot_ = slot % C;
   	nextCschSlot_ = seq % C;
-  	nextCschFrame_ = 1 + slot / C;
+  	//nextCschFrame_ = 1 + slot / C;
+	//SS number is (nodeNum - 1),the one in this formula is BS
+	/*
+	int SSnum = nodeNum - 1;
+	if(SSnum % C == 0) nextCschFrame_ += SSnum / C;
+	else nextCschFrame_ += SSnum / C + 1;
+	*/
+	nextCschFrame_ += (nodeNum - 1) / C + (((nodeNum - 1)%C)?1:0);
   	nextCschFrame_ += 1 + totalHops / C;
   	//compute the next slot and next time
   	//nextCschSlot_ ++;
@@ -471,7 +479,7 @@ WimshCoordinatorStandard::electionCsch()
   int C = phyMib_->controlSlots();
   int slot = currentCtrlSlotCsch();
   int totalHops = mac_->topology()->totalHops();
-  slot += totalHops;
+  slot += totalHops - 1;//there is (totalHops - 1) slot to transmit the csch from bs to bottom
   int startFrame = slot / C;
   return startFrame;
 }

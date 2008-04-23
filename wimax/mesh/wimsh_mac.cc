@@ -1090,7 +1090,7 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   //burst->addMshCsch (csch);
   //compute the frame that the grant message reaches the end node
   csch->getFlowSE() = 0;
-
+  csch->getTransmitId() = nodeId();
   int frames = endFrame - startFrame;
 
   assert ( frames > 0);
@@ -1271,6 +1271,7 @@ SSWimshMac::recvMshCsch(WimshMshCsch* csch,double txtime) {
       setControlChannel(wimax::TX);
       WimshBurst *burst = new WimshBurst;
       WimshMshCsch *tcsch = new WimshMshCsch(*csch);
+	tcsch->getTransmitId() = nodeId();
       burst->addMshCsch (tcsch);
       phy_[0]->sendBurst (burst);
     }
