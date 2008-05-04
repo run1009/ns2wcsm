@@ -114,6 +114,7 @@ proc init {} {
 proc finish {} {
     global ns simtime
 
+    $ns stat print
 
     set simtime [expr [clock seconds] - $simtime]
     puts "run duration: $simtime s"
@@ -248,6 +249,7 @@ proc create_nodes {} {
     
 	$mac($i) topology $topo
     
+
 	for { set j 0 } {$j < $opt(channel) } { incr j } {
 	    $mac($i) channel $chan($j)
 	}
@@ -297,6 +299,10 @@ proc create_nodes {} {
     
 	$mac($i) initialize
     }
+
+    for {set i 1} {$i < $opt(nodes)} {incr i} {
+	$mac($i) BSnode $mac(0)
+    }
 }
 
 
@@ -344,8 +350,8 @@ proc create_connections {} {
     $macmib priority 1 1
     $macmib precedence 1 0
 
-    $ns attach-agent $node(9) $agtsrc1
-    $ns attach-agent $node(6) $agtdst1
+    $ns attach-agent $node(4) $agtsrc1
+    $ns attach-agent $node(7) $agtdst1
     $ns connect $agtsrc1 $agtdst1
     $app1 attach-agent $agtsrc1
 }
@@ -403,6 +409,11 @@ puts "create node"
 
 create_connections
 create_profiles
+
+$ns stat add wimsh_mac_tpt avg rate
+#$ns stat add wimsh_chn_ctrl_tpt avg rate
+#$ns stat add wimsh_chn_data_tpt avg rate
+$ns stat add wimsh_active_flows avg continuous
 
 alive
 

@@ -306,6 +306,9 @@ class WimshMac : public TclObject {
 	//! Bandwidth request manager. Created by initialize().
 	WimshBwManager* bwmanager_;
 
+
+	WimshMac* BSnode;
+
 	//! Forwarding module. Created by initialize().
 	WimshForwarding* forwarding_;
 

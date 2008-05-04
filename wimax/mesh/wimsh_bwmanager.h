@@ -50,6 +50,7 @@ protected:
 	//! Pointer to the MAC layer.
 	WimshMac* mac_;
 
+
 	//! Timer to schedule bandwidth manager events.
 	TTimer<WimshBwManager> timer_;
 
@@ -88,6 +89,12 @@ public:
 	WimshBwManager (WimshMac* m);
 	//! Do nothing.
 	virtual ~WimshBwManager () { }
+
+	//! Get grants_,dst_,channel_ ,BS information get by SS
+	virtual std::vector<std::bitset<MAX_SLOTS> > & getGrants() { return grants_; }
+	virtual std::vector<std::vector<WimaxNodeId> > & getDst() { return dst_; }
+	virtual std::vector<std::vector<unsigned int> > & getChannel() { return channel_; }
+
 
 	//! Get an MSH-DSCH message from a neighbor, which is not deallocated.
 	virtual void recvMshDsch (WimshMshDsch* dsch) = 0;

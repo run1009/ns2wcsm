@@ -451,6 +451,9 @@ WimshMac::command (int argc, const char*const* argv)
 	} else if ( argc > 2 && strcmp (argv[1], "scheduler") == 0 ) {
 		assert ( initialized_ );
 		return scheduler_->command (argc - 2, argv + 2);
+	} else if ( argc == 3 && strcmp (argv[1], "BSnode") == 0) {
+	  BSnode = (WimshMac *) TclObject::lookup(argv[2]);
+	  return TCL_OK;
 	}
 
 	return TCL_ERROR;
@@ -1075,7 +1078,29 @@ BSWimshMac::recvMshCsch(WimshMshCsch* csch, double txtime) {
     message.push_back(tcsch);
   }
 }
+/*
+void
+BSWimshMac::DSASTUR()
+{
+  //use DSASTUR Algorithm to allocate the channels to links
+  std::vector<unsigned int> d;
+  std::vector<unsigned int> c;
 
+  int nodeNum = topology_->numNodes();
+  d.resize(nodeNum);
+  c.resize(nodeNum);
+
+  //initialization
+  for(int i = 0; i < nodeNum; ++i)  d[i] = c[i] = 0;
+  
+  
+
+
+
+
+
+}
+*/
 
 void 
 BSWimshMac::opportunity(int startFrame,int endFrame)
