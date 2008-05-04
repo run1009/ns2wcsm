@@ -1102,6 +1102,34 @@ BSWimshMac::DSASTUR()
 }
 */
 
+
+void 
+BSWimshMac::opportunity(int startFrame,int endFrame)
+{
+  assert (initialized );
+  WimshBurst* burst = new WimshBurst;
+  
+  WimshMshCsch * csch = new WimshMshCsch;
+
+  csch->getFlag() = false;
+
+  csch->getFlowSE() = 0;
+  csch->getTransmitId() = nodeId();
+  
+  int frames = endFrame - startFrame;
+
+  assert (frames > 0);
+
+  bwmanager_->slotAllocation(message);
+
+
+
+  setControlChannel(wimax::TX);
+  burst->addMshCsch(csch);
+  phy_[0]->sendBurst (burst);
+
+}
+
 void 
 BSWimshMac::opportunity(int startFrame,int endFrame)
 {

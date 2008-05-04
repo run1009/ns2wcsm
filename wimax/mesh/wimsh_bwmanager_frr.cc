@@ -235,6 +235,107 @@ WimshBwManagerFairRR::recvMshDsch (WimshMshDsch* dsch)
 }
 
 void 
+WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
+{
+  struct Entry {
+    WimaxNodeId index;
+    WimaxNodeId dst;
+    int bytes;
+  };
+  
+  std::vector<Entry*> byteRdy;
+
+
+  //set the initial value to byteRdy and dst, then construct the topology
+  for(unsigned int i = 0; i < message.size() ; ++i) {
+    WimshMshCsch *childCsch = message[i];
+    std::list<WimshMshCsch::FlowEntry*> & flow = childCsch->getFlowEntries();
+    std::list<WimshMshCsch::FlowEntry*>::iterator it;
+    for(it = flow.begin(); it != flow.end(); ++it) {
+      for(int j = 0; j < byteRdy.size(); ++j) {
+	if(byteRdy[j]->index == (*it)->id && byteRdy[j]->dst == (*it)->towardId) {
+	  if((*it)->upFlow != 0) byteRdy[j]->bytes += (*it)->upFlow;
+	  else byteRdy[j]->bytes += (*it)->downFlow;
+	} else {
+	  Entry *entry = new Entry;
+	  entry->index = (*it)->id;
+	  entry->dst = (*it)->towardId;
+	  if((*it)->upFlow != 0) entry->bytes = (*it)->upFlow;
+	  else entry->bytes = (*it)->downFlow;
+	  byteRdy.push_back(entry);
+	}
+      }
+    }
+  }
+  
+  //according to byteRdy, create topo
+  int numNodes = mac_->topology()->numNodes();
+  int topo[numNodes][numNodes];
+  
+  for(int i = 0; i < numNodes; ++i)
+    for(int j = 0; j < numNodes; ++j)
+      topo[i][j] = 0;
+  
+  //fecth the nexthop of (index, dst) by class topology
+
+  for(int i = 0; i < byteRdy.size(); ++i) {
+    if(byteRdy[i]->bytes != 0) {
+      WimaxNodeId nextHop = mac_->topology()->nextHop(byteRdy[i]->index,byteRdy[i]->dst);
+      topo[byteRdy[i]->index][nextHop] = topo[nextHop][byteRdy[i]->index] = 1;
+    }
+  }
+  
+  //perform algorithm to assign the channels
+  
+  //1.map edges to nodes which are colored by centain algorithm
+  std::vector<std::vector<bool> > newTopo;
+  std::vector<eTn *> nodes;
+  int nodeCount = 0;
+  for(int i = 0; i < numNodes; ++i) {
+    for(int j = i; j < numNodes; ++j) {
+      if(topo[i][j] != 0) {
+	eTn * t = new eTn;
+	t->index = nodeCount++;
+	t->src = i;
+	t->dst = j;
+	nodes.push_back(t);
+      }
+    }
+  }
+  //1.1.resize topo
+  newTopo.resize(nodeCount);
+  for(int i = 0; i < nodeCount; ++i) newTopo[i].resize(nodeCount);
+  for(int i = 0; i < nodeCount; ++i) 
+    for(int j = 0; j < nodeCount; ++j)
+      newTopo[i][j] = false;
+  //1.2.fit the newTopo
+  //TODO:we can use search algorithm to improve the effective
+  std::vector<int> result;
+  for(int i = 0; i < nodeCount; ++i) {
+    findNode(nodes[i]->src,nodes[i]->dst,nodes,result);
+    for(int j = 0; j < result.size(); ++j)
+      if(i != result[j]) newTopo[i][result[j]] = newTopo[result[j]][i] = true;
+    result.clear();
+  }
+
+  //assignment algorithm
+
+  
+
+  //update byteRdy
+}
+
+
+void
+WimshBwManagerFairRR::findNode(WimaxNodeId src,WimaxNodeId dst,std::vector<eTn*> & nodes,std::vector<int> & result) {
+  for(int i = 0; i < nodes.size(); ++i) {
+    if(src == nodes[i]->src || src == nodes[i]->dst || dst == nodes[i]->src || dst == nodes[i]->dst) {
+      result.push_back(nodes[i]->index);
+    }
+  }
+}
+
+void 
 WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 {
   //now just for SS,also compatiable bs

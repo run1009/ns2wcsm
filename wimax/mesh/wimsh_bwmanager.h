@@ -78,6 +78,10 @@ protected:
 	std::vector< std::bitset<MAX_SLOTS> > grants_;
 	//! Array of vectors representing the grants' destinations.
 	std::vector< std::vector<WimaxNodeId> > dst_;
+
+	//! Array of vectors representing the grants' sources,only meanful to BS
+
+	std::vector< std::vector<WimaxNodeId> > src_;
 	//! Array of vectors representing the channel identifiers.
 	std::vector< std::vector<unsigned int> > channel_;
 
@@ -93,7 +97,10 @@ public:
 	//! Get grants_,dst_,channel_ ,BS information get by SS
 	virtual std::vector<std::bitset<MAX_SLOTS> > & getGrants() { return grants_; }
 	virtual std::vector<std::vector<WimaxNodeId> > & getDst() { return dst_; }
+	virtual std::vector<std::vector<WimaxNodeId> > & getSrc() { return src_; }
 	virtual std::vector<std::vector<unsigned int> > & getChannel() { return channel_; }
+
+	virtual void slotAllocation(std::vector<WimshMshCsch*> &) { }
 
 
 	//! Get an MSH-DSCH message from a neighbor, which is not deallocated.

@@ -125,6 +125,13 @@ protected:
 		}
 	};
 
+	//map edges to nodes
+	struct eTn {
+	  WimaxNodeId src;
+	  WimaxNodeId dst;
+	  int index;
+	};
+
 	//! Array of neighbor descriptors for bandwidth requesting/granting.
 	std::vector<NeighDesc> neigh_;
 
@@ -311,6 +318,8 @@ public:
 	//! We sent out some data on a link (i.e. negative backlog).
 	void sent (WimaxNodeId nexthop, unsigned int bytes);
 
+	void slotAllocation(std::vector<WimshMshCsch*> & message);
+
 
 	//void sent(int size);
 
@@ -487,6 +496,10 @@ private:
 
 	//! Debug function. Print out  RR data structures.
 	void printDataStructures (FILE* os);
+
+
+
+	void findNode(WimaxNodeId,WimaxNodeId,std::vector<eTn*> &,std::vector<int> &);
 };
 
 #endif // __NS2_WIMSH_BW_MANAGER_FRR_H
