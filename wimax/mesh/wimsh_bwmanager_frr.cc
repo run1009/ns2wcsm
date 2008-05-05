@@ -268,10 +268,11 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
     }
   }
   
-  //according to byteRdy, create topo
   int numNodes = mac_->topology()->numNodes();
   int topo[numNodes][numNodes];
   
+
+  //according to byteRdy, create topo
   for(int i = 0; i < numNodes; ++i)
     for(int j = 0; j < numNodes; ++j)
       topo[i][j] = 0;
@@ -324,7 +325,20 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
   std::vector<int> chanAssign;
   chanAssign.resize(nodeCount);
   Desaturation(newTopo,mac_->nchannels(),chanAssign);
-  //
+  //map edges graph to nodes graph, and update grants_,dst_,src_,channels_
+  for(int i = 0; i < nodeCount; ++i) {
+    if(chanAssign[nodes[i]->index] != -1) {
+      for(int j = 0; j < byteRdy.size(); ++j) {
+	if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
+	  
+
+	} else if(nodes[i]->dst == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->src) {
+
+
+	}
+      }
+    }
+  }
   
 
   //update byteRdy
