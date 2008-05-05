@@ -500,6 +500,11 @@ private:
 
 
 	void findNode(WimaxNodeId,WimaxNodeId,std::vector<eTn*> &,std::vector<int> &);
+	
+
+	//channels assignment algorithms
+	void Desaturation(std::vector<std::vector<bool> > &,int,std::vector<int> &);
+	bool interfere(int,int,std::vecotr<int> &,std::vector<std::vector<bool> > &);
 };
 
 #endif // __NS2_WIMSH_BW_MANAGER_FRR_H

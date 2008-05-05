@@ -319,10 +319,108 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
   }
 
   //assignment algorithm
-
+  //input: newTopo,channels,current Slot
+  //output: channels allocation
+  std::vector<int> chanAssign;
+  chanAssign.resize(nodeCount);
+  Desaturation(newTopo,mac_->nchannels(),chanAssign);
+  //
   
 
   //update byteRdy
+}
+
+
+void 
+WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int channels,std::vector<int> & result)
+{
+  int nodeNums = result.size();
+  std::vector<int> saturation;
+  saturation.resize(nodeNums);
+  std::vector<int> uncolorNeigh;
+  uncolorNeigh.resize(nodeNums);
+  
+  for(int i = 0; i < nodeNums; ++i) {
+    uncolorNeigh[i] = saturation[i] = 0;
+    result[i] = -1;
+  }
+
+  for(int i = 0; i < nodeNums; ++i)
+    for(int j = 0; j < nodeNums; ++j)
+      if(topo[i][j] != false) uncolorNeigh[i]++;
+
+  for(int i = 0; i < nodeNums; ++i) {
+    //find max saturation
+    //TODO: sort the vector,and find the max value
+    int max = -1,node,num = 0,k;
+    for(int j = 0; j < nodeNums; ++j) {
+      if(max < saturation[j]) {
+	max = saturation[j];
+	node = j;
+	num = 0;
+      }
+      if( max == saturation[j]) num++;
+    }
+    
+    if(num == 1) {
+      for(k = 0; k < channels; ++k) {
+	if(interfere(k,node,result,topo) == true) continue;
+	else {
+	  result[node] = k;
+	  break;
+	}
+      }
+    } else {
+      int maxNeigh = -1;
+      for(int j = 0;j < nodeNums; ++j) {
+	if(max == saturation[j] && maxNeigh < uncolorNeigh[j]) {
+	  maxNeigh = uncolorNeigh[j];
+	  node = j;
+     	}
+      }
+      for(k = 0; k < channels; ++k) {
+	if(interfere(k,node,result,topo) == true) continue;
+	else {
+	  result[node] = k;
+	  break;
+	}
+      }
+    }
+    //update the saturation and uncolorNeigh
+    if(k < channels) {
+      for(int j = 0; j < nodeNums; ++j) {
+	if(topo[node][j] == true) {
+	  uncolorNeigh[j]--;
+	  if(inColors(j,k,result,topo) == false) saturation[j]--;
+	}
+      } 
+    }
+  }
+}
+
+
+bool
+WimshBwManagerFairRR::inColors(int node,int color,std::vector<int> & result,std::vector<std::vector<bool> > & topo)
+{
+  int num = 0;
+  for(int i = 0; i < result.size(); ++i) {
+    if(topo[node][i] == true) {
+      if(result[i] == color) {
+	if(++num > 1) return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool 
+WimshBwManagerFairRR::interfere(int color,int node,std::vector<int> & result,std::vector<std::vector<bool> > & topo)
+{
+  for(int i = 0; i < result.size(); ++i) {
+    if(topo[node][i] == true)
+      if(result[i] == color) return false;
+  }
+  return true;
 }
 
 
