@@ -28,6 +28,9 @@
 #include <wimsh_packet.h>
 #include <math.h>
 #include <vector>
+
+class WimPhyMib;
+
 WimshBwManagerFairRR::WimshBwManagerFairRR (WimshMac* m) :
 	WimshBwManager (m), wm_ (m)
 {
@@ -244,7 +247,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
   };
   
   std::vector<Entry*> byteRdy;
-
+  std::vector<Entry*> preRdy;
 
   //set the initial value to byteRdy and dst, then construct the topology
   for(unsigned int i = 0; i < message.size() ; ++i) {
@@ -270,12 +273,13 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
   
   int numNodes = mac_->topology()->numNodes();
   int topo[numNodes][numNodes];
+  int directTopo[numNodes][numNodes];
   
 
   //according to byteRdy, create topo
   for(int i = 0; i < numNodes; ++i)
     for(int j = 0; j < numNodes; ++j)
-      topo[i][j] = 0;
+      topo[i][j] = directTopo[i] = 0;
   
   //fecth the nexthop of (index, dst) by class topology
 
@@ -283,6 +287,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
     if(byteRdy[i]->bytes != 0) {
       WimaxNodeId nextHop = mac_->topology()->nextHop(byteRdy[i]->index,byteRdy[i]->dst);
       topo[byteRdy[i]->index][nextHop] = topo[nextHop][byteRdy[i]->index] = 1;
+      directTopo[byteRdy[i]->index][nextHop] = 1;
     }
   }
   
@@ -293,8 +298,8 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
   std::vector<eTn *> nodes;
   int nodeCount = 0;
   for(int i = 0; i < numNodes; ++i) {
-    for(int j = i; j < numNodes; ++j) {
-      if(topo[i][j] != 0) {
+    for(int j = 0; j < numNodes; ++j) {
+      if(directTopo[i][j] != 0) {
 	eTn * t = new eTn;
 	t->index = nodeCount++;
 	t->src = i;
@@ -325,9 +330,16 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
   std::vector<int> chanAssign;
   chanAssign.resize(nodeCount);
   Desaturation(newTopo,mac_->nchannels(),chanAssign);
-  //map edges graph to nodes graph, and update grants_,dst_,src_,channels_
+
+  //calculate the bytes of one minislot
+  int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
+  int N = mac_->phyMib()->slotOerFrame();
+
+  
+  //map edges graph to nodes graph, and update grants_,dst_,src_,channels_,then update byteRdy
   for(int i = 0; i < nodeCount; ++i) {
     if(chanAssign[nodes[i]->index] != -1) {
+      /*
       for(int j = 0; j < byteRdy.size(); ++j) {
 	if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
 	  
@@ -336,12 +348,47 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
 
 
 	}
+	
+      }
+      */
+      for(int j = 0; j < byteRdy.size(); ++j) {
+	if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
+	  int currentFrame = (startFrame + currentSlot / N) % HORIZON;
+	  src_[currentFrame][currentSlot % N] = nodes[i]->src;
+	  dst_[currentFrame][currentSlot % N] = nodes[i]->dst;
+	  if(nodes[i]->src == 0) grants_[currentFrame][currentSlot % N] = true;
+	  else grants_[currentFrame][currentSlot % N] = false;
+	  channel_[currentFrame][currentSlot % N] = chanAssign[nodes[i]->index];
+	  Entry* t = new Entry(*byteRdy[i]);
+	  preRdy.push_back(t);
+	  break;
+	}
       }
     }
   }
-  
-
   //update byteRdy
+  for(int i = 0; i < preRdy.size(); ++i) {
+    for(int j = 0; j < byteRdy.size(); ++j) {
+      if(preRdy[i]->index == byteRdy[j]->index && preRdy[i]->dst == byteRdy[j]->dst) {
+	byteRdy[j]->byte -= BytesPerSlot;
+	int nextHop = mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst);
+	if(nextHop != byteRdy[j]->dst) {
+	  for(int k = 0;k < byteRdy.size(); ++k)
+	    if(byteRdy[k]->index == nextHop && byteRdy[k]->dst == byteRdy[j]->dst)
+	      byteRdy[k]->byte += BytesPerSlot;
+	  if(k == byteRdy.size()) {
+	    Entry * t = new Entry;
+	    t->index = nextHop;
+	    t->dst = byteRdy[j]->dst;
+	    t->byte = BytesPerSlot;
+	    byteRdy.push_back(t);
+	  }
+	}
+	if(byteRdy[j]->byte <= 0) byteRdy.erase(byteRdy.begin() + j);
+	break;
+      }
+    }
+  }
 }
 
 
