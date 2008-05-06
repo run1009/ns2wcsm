@@ -307,7 +307,7 @@ class WimshMac : public TclObject {
 	WimshBwManager* bwmanager_;
 
 
-	WimshMac* BSnode;
+	WimshMac* BSnode_;
 
 	//! Forwarding module. Created by initialize().
 	WimshForwarding* forwarding_;
@@ -413,6 +413,8 @@ public:
 	WimshScheduler* scheduler () { return scheduler_; }
 	//! Return the bandwidth manager.
 	WimshBwManager* bwmanager () { return bwmanager_; }
+
+	WimshMac* BSnode() { return BSnode_; }
 
 	//! Return the internal 'index' of a neighbor.
 	/*!

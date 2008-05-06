@@ -240,14 +240,10 @@ WimshBwManagerFairRR::recvMshDsch (WimshMshDsch* dsch)
 void 
 WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int startFrame,int frames)
 {
-  struct Entry {
-    WimaxNodeId index;
-    WimaxNodeId dst;
-    int bytes;
-  };
+
   
-  std::vector<Entry*> byteRdy;
-  std::vector<Entry*> preRdy;
+  std::vector<Entry *> byteRdy;
+  std::vector<Entry *> preRdy;
 
   //set the initial value to byteRdy and dst, then construct the topology
   for(unsigned int i = 0; i < message.size() ; ++i) {
@@ -255,7 +251,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     std::list<WimshMshCsch::FlowEntry*> & flow = childCsch->getFlowEntries();
     std::list<WimshMshCsch::FlowEntry*>::iterator it;
     for(it = flow.begin(); it != flow.end(); ++it) {
-      for(int j = 0; j < byteRdy.size(); ++j) {
+      for(unsigned int j = 0; j < byteRdy.size(); ++j) {
 	if(byteRdy[j]->index == (*it)->id && byteRdy[j]->dst == (*it)->towardId) {
 	  if((*it)->upFlow != 0) byteRdy[j]->bytes += (*it)->upFlow;
 	  else byteRdy[j]->bytes += (*it)->downFlow;
@@ -276,11 +272,11 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
   int directTopo[numNodes][numNodes];
   int N = mac_->phyMib()->slotPerFrame();
 
-  for(int currentSlot = 0;i < frames * N; currentSlot++) {
+  for(int currentSlot = 0;currentSlot < frames * N; currentSlot++) {
     //according to byteRdy, create topo
     for(int i = 0; i < numNodes; ++i)
       for(int j = 0; j < numNodes; ++j)
-	topo[i][j] = directTopo[i] = 0;
+	topo[i][j] = directTopo[i][j] = 0;
     
     //fecth the nexthop of (index, dst) by class topology
     
@@ -371,21 +367,22 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     for(int i = 0; i < preRdy.size(); ++i) {
       for(int j = 0; j < byteRdy.size(); ++j) {
 	if(preRdy[i]->index == byteRdy[j]->index && preRdy[i]->dst == byteRdy[j]->dst) {
-	  byteRdy[j]->byte -= BytesPerSlot;
+	  byteRdy[j]->bytes -= BytesPerSlot;
 	  int nextHop = mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst);
 	  if(nextHop != byteRdy[j]->dst) {
-	    for(int k = 0;k < byteRdy.size(); ++k)
+	    unsigned int k;
+	    for( k = 0;k < byteRdy.size(); ++k)
 	      if(byteRdy[k]->index == nextHop && byteRdy[k]->dst == byteRdy[j]->dst)
-		byteRdy[k]->byte += BytesPerSlot;
+		byteRdy[k]->bytes += BytesPerSlot;
 	    if(k == byteRdy.size()) {
 	      Entry * t = new Entry;
 	      t->index = nextHop;
 	      t->dst = byteRdy[j]->dst;
-	      t->byte = BytesPerSlot;
+	      t->bytes = BytesPerSlot;
 	      byteRdy.push_back(t);
 	    }
 	  }
-	  if(byteRdy[j]->byte <= 0) byteRdy.erase(byteRdy.begin() + j);
+	  if(byteRdy[j]->bytes <= 0) byteRdy.erase(byteRdy.begin() + j);
 	  break;
 	}
       }
@@ -508,9 +505,9 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
     int startFrame = csch->startFrame;
     int endFrame = csch->endFrame;
     //fetch bs information
-    std::vector< std::vector<WimaxNodeId> >& src = BSnode->bwmanager()->getSrc();
-    std::vector< std::vector<WimaxNodeId> >& dst = BSnode->bwmanager()->getDst();
-    std::vector< std::vector<unsigned int> > & channel = BSnode->bwmanager()->getChannel();
+    std::vector< std::vector<WimaxNodeId> >& src = mac_->BSnode()->bwmanager()->getSrc();
+    std::vector< std::vector<WimaxNodeId> >& dst = mac_->BSnode()->bwmanager()->getDst();
+    std::vector< std::vector<unsigned int> > & channel = mac_->BSnode()->bwmanager()->getChannel();
     
     //fit node's information
     for(int i = startFrame; i < endFrame; i++) {
@@ -526,6 +523,7 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
     }
   }
 }
+
 /*
 void 
 WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)

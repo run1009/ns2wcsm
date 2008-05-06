@@ -452,7 +452,7 @@ WimshMac::command (int argc, const char*const* argv)
 		assert ( initialized_ );
 		return scheduler_->command (argc - 2, argv + 2);
 	} else if ( argc == 3 && strcmp (argv[1], "BSnode") == 0) {
-	  BSnode = (WimshMac *) TclObject::lookup(argv[2]);
+	  BSnode_ = (WimshMac *) TclObject::lookup(argv[2]);
 	  return TCL_OK;
 	}
 

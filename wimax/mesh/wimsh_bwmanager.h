@@ -100,7 +100,7 @@ public:
 	virtual std::vector<std::vector<WimaxNodeId> > & getSrc() { return src_; }
 	virtual std::vector<std::vector<unsigned int> > & getChannel() { return channel_; }
 
-	virtual void slotAllocation(std::vector<WimshMshCsch*> &) { }
+	virtual void slotAllocation(std::vector<WimshMshCsch*> &,int,int) { }
 
 
 	//! Get an MSH-DSCH message from a neighbor, which is not deallocated.
