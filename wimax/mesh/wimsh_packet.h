@@ -432,6 +432,13 @@ public:
   
   WimaxMacHeader hdr_;
   WimaxNodeId src_;
+
+  //----------------cut line---------
+  //the variables below the cut line are not mentioned in IEEE standard
+  int startFrame;
+  int endFrame;
+  //----------------cut line---------
+  
 public:
   WimshMshCsch() {
     // now it leaves blank

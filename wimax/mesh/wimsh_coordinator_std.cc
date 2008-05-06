@@ -453,22 +453,22 @@ WimshCoordinatorStandard::electionCsch (WimshMshCsch* csch)
   	//nextCschSlot_ ++;
   	//nextCschFrame_ ++;
   	for(int i = 0; i < ChildCsch.size(); ++i) {
-    		std::list<WimshMshCsch::FlowEntry *>::iterator it;
-    		std::list<WimshMshCsch::FlowEntry *> &flow = ChildCsch[i]->getFlowEntries();
-		int id = ChildCsch[i]->getTransmitId();
-    		for(it = flow.begin(); it != flow.end(); ++it) {
-			WimshMshCsch::FlowEntry *entry = new WimshMshCsch::FlowEntry(**it);
-      			csch->add(entry);
-    		}
-    		//delete ChildCsch[i];
+	  std::list<WimshMshCsch::FlowEntry *>::iterator it;
+	  std::list<WimshMshCsch::FlowEntry *> &flow = ChildCsch[i]->getFlowEntries();
+	  int id = ChildCsch[i]->getTransmitId();
+	  for(it = flow.begin(); it != flow.end(); ++it) {
+	    WimshMshCsch::FlowEntry *entry = new WimshMshCsch::FlowEntry(**it);
+	    csch->add(entry);
+	  }
+	  //delete ChildCsch[i];
   	}
   	ChildCsch.clear();
-  	} else {
-		nextCschSlot_ = 0;
-		if((nodeNum - 1) % C == 0) nextCschFrame_ += (nodeNum - 1) / C;
-		else nextCschFrame_ += (nodeNum - 1) / C + 1;
-		nextCschFrame_ += 1 + totalHops / C;
-  	}
+  } else {
+    nextCschSlot_ = 0;
+    if((nodeNum - 1) % C == 0) nextCschFrame_ += (nodeNum - 1) / C;
+    else nextCschFrame_ += (nodeNum - 1) / C + 1;
+    nextCschFrame_ += 1 + totalHops / C;
+  }
 }
 
 

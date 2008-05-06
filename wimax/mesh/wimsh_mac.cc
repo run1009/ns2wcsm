@@ -1078,29 +1078,7 @@ BSWimshMac::recvMshCsch(WimshMshCsch* csch, double txtime) {
     message.push_back(tcsch);
   }
 }
-/*
-void
-BSWimshMac::DSASTUR()
-{
-  //use DSASTUR Algorithm to allocate the channels to links
-  std::vector<unsigned int> d;
-  std::vector<unsigned int> c;
 
-  int nodeNum = topology_->numNodes();
-  d.resize(nodeNum);
-  c.resize(nodeNum);
-
-  //initialization
-  for(int i = 0; i < nodeNum; ++i)  d[i] = c[i] = 0;
-  
-  
-
-
-
-
-
-}
-*/
 
 
 void 
@@ -1116,6 +1094,9 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   csch->getFlowSE() = 0;
   csch->getTransmitId() = nodeId();
   
+  csch->startFrame = startFrame;
+  csch->endFrame = endFrame;
+  
   int frames = endFrame - startFrame;
 
   assert (frames > 0);
@@ -1130,6 +1111,7 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
 
 }
 
+/*
 void 
 BSWimshMac::opportunity(int startFrame,int endFrame)
 {
@@ -1290,6 +1272,7 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   burst->addMshCsch(csch);
   phy_[0]->sendBurst (burst);
 }
+*/
 
 int
 BSWimshMac::command(int argc,const char*const* argv) {

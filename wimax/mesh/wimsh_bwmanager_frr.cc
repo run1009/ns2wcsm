@@ -498,6 +498,35 @@ WimshBwManagerFairRR::findNode(WimaxNodeId src,WimaxNodeId dst,std::vector<eTn*>
   }
 }
 
+
+void 
+WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
+{
+  int N = mac_->phyMib()->slotPerFrame();
+  if( !csch->getFlag() ) {
+    //get BS grants to fit node's grants
+    int startFrame = csch->startFrame;
+    int endFrame = csch->endFrame;
+    //fetch bs information
+    std::vector< std::vector<WimaxNodeId> >& src = BSnode->bwmanager()->getSrc();
+    std::vector< std::vector<WimaxNodeId> >& dst = BSnode->bwmanager()->getDst();
+    std::vector< std::vector<unsigned int> > & channel = BSnode->bwmanager()->getChannel();
+    
+    //fit node's information
+    for(int i = startFrame; i < endFrame; i++) {
+      for(int j = 0; j < N; ++j) {
+	channel_[i % HORIZON][j] = channel[i % HORIZON][j];
+	if(src[i % HORIZON][j] == mac_->nodeId()) {
+	  grants_[i % HORIZON][j] = true;
+	  dst_[i % HORIZON][j] = dst[i % HORIZON][j];
+	} else {
+	  grants_[i % HORIZON][j] = false;
+	} 
+      }
+    }
+  }
+}
+/*
 void 
 WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 {
@@ -552,6 +581,7 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
   //if the node is BS,and the bs should calculate the minislot
 
 }
+*/
 
 void
 WimshBwManagerFairRR::rcvGrants (WimshMshDsch* dsch)
