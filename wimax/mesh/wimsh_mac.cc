@@ -123,7 +123,15 @@ WimshMacMib::command (int argc, const char*const* argv)
 			return TCL_ERROR;
 		}
 		return TCL_OK;
-	} /*jpyu*/else if(argc == 3 && strcmp(argv[1],"avlChannel") == 0) {
+	} else if (argc == 3 && strcmp(argv[1],"numNodes") == 0) { 
+	  numNodes = atoi(argv[2]);
+	  nodeMac.resize(numNodes);
+	  return TCL_OK;
+	} else if (argc == 3 && strcmp(argv[1],"mac") == 0) {
+	  WimshMac *t = (WimshMac*) TclObject::lookup(argv[2]);
+	  nodeMac[t->nodeId()] = t;
+	  return TCL_OK;
+	}/*jpyu*/else if(argc == 3 && strcmp(argv[1],"avlChannel") == 0) {
 	  WimshChannel* chan;
 	  chan = (WimshChannel *) TclObject::lookup(argv[2]);
 	  avlChannels.push_back(chan);

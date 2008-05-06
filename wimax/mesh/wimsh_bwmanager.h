@@ -81,7 +81,7 @@ protected:
 
 	//! Array of vectors representing the grants' sources,only meanful to BS
 
-	std::vector< std::vector<WimaxNodeId> > src_;
+	//std::vector< std::vector<WimaxNodeId> > src_;
 	//! Array of vectors representing the channel identifiers.
 	std::vector< std::vector<unsigned int> > channel_;
 
@@ -97,8 +97,14 @@ public:
 	//! Get grants_,dst_,channel_ ,BS information get by SS
 	virtual std::vector<std::bitset<MAX_SLOTS> > & getGrants() { return grants_; }
 	virtual std::vector<std::vector<WimaxNodeId> > & getDst() { return dst_; }
-	virtual std::vector<std::vector<WimaxNodeId> > & getSrc() { return src_; }
+	//virtual std::vector<std::vector<WimaxNodeId> > & getSrc() { return src_; }
 	virtual std::vector<std::vector<unsigned int> > & getChannel() { return channel_; }
+
+
+	virtual void setGrant(int frame,int slot,bool value) { grants_[frame][slot] = value; }
+	virtual void setDst(int frame,int slot,unsigned int dst) { dst_[frame][slot] = dst; }
+	virtual void setChannel(int frame,int slot,unsigned int channel) { channel_[frame][slot] = channel; }
+
 
 	virtual void slotAllocation(std::vector<WimshMshCsch*> &,int,int) { }
 

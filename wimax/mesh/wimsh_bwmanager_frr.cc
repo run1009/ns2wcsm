@@ -333,6 +333,11 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     //int N = mac_->phyMib()->slotPerFrame();
 
   
+
+    std::vector<bool> setAlloc;
+    setAlloc.resize(mac_->topology()->numNodes());
+    for(unsigned int i = 0;i < setAlloc.size(); ++i) setAlloc[i] = false;
+
     //map edges graph to nodes graph, and update grants_,dst_,src_,channels_,then update byteRdy
     for(int i = 0; i < nodeCount; ++i) {
       if(chanAssign[nodes[i]->index] != -1) {
@@ -348,14 +353,33 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
 	  
 	  }
 	*/
+	
 	for(int j = 0; j < byteRdy.size(); ++j) {
 	  if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
 	    int currentFrame = (startFrame + currentSlot / N) % HORIZON;
+	    /*
 	    src_[currentFrame][currentSlot % N] = nodes[i]->src;
 	    dst_[currentFrame][currentSlot % N] = nodes[i]->dst;
-	    if(nodes[i]->src == 0) grants_[currentFrame][currentSlot % N] = true;
+	    if(nodes[i]->src == mac_->nodeId()) grants_[currentFrame][currentSlot % N] = true;
 	    else grants_[currentFrame][currentSlot % N] = false;
 	    channel_[currentFrame][currentSlot % N] = chanAssign[nodes[i]->index];
+	    */
+	    
+
+	    WimshBwManager* bw = mac_->macMib()->getMac(nodes[i]->src)->bwmanager();
+	    bw->setGrant(currentFrame,currentSlot % N,true);
+	    bw->setDst(currentFrame,currentSlot % N,nodes[i]->dst);
+	    bw->setChannel(currentFrame,currentSlot % N,chanAssign[nodes[i]->index]);
+	    
+	    setAlloc[nodes[i]->src] = true;
+	    
+	    bw = mac_->macMib()->getMac(nodes[i]->dst)->bwmanager();
+	    bw->setGrant(currentFrame,currentSlot % N,false);
+	    bw->setChannel(currentFrame,currentSlot % N,chanAssign[nodes[i]->index]);
+	    
+	    setAlloc[nodes[i]->dst] = true;
+
+
 	    Entry* t = new Entry(*byteRdy[i]);
 	    preRdy.push_back(t);
 	    break;
@@ -363,6 +387,14 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
 	}
       }
     }
+    for(unsigned int i = 0;i < setAlloc.size(); ++i) {
+      if(setAlloc[i] == false) {
+	WimshBwManager* bw = mac_->macMib()->getMac(i)->bwmanager();
+	bw->setGrant((startFrame + currentSlot / N) % HORIZON,currentSlot % N,false);
+	bw->setChannel((startFrame + currentSlot / N) % HORIZON,currentSlot % N,0);
+      }
+    }
+
     //update byteRdy
     for(int i = 0; i < preRdy.size(); ++i) {
       for(int j = 0; j < byteRdy.size(); ++j) {
@@ -465,7 +497,7 @@ bool
 WimshBwManagerFairRR::inColors(int node,int color,std::vector<int> & result,std::vector<std::vector<bool> > & topo)
 {
   int num = 0;
-  for(int i = 0; i < result.size(); ++i) {
+  for(unsigned int i = 0; i < result.size(); ++i) {
     if(topo[node][i] == true) {
       if(result[i] == color) {
 	if(++num > 1) return true;
@@ -478,7 +510,7 @@ WimshBwManagerFairRR::inColors(int node,int color,std::vector<int> & result,std:
 bool 
 WimshBwManagerFairRR::interfere(int color,int node,std::vector<int> & result,std::vector<std::vector<bool> > & topo)
 {
-  for(int i = 0; i < result.size(); ++i) {
+  for(unsigned int i = 0; i < result.size(); ++i) {
     if(topo[node][i] == true)
       if(result[i] == color) return false;
   }
@@ -488,7 +520,7 @@ WimshBwManagerFairRR::interfere(int color,int node,std::vector<int> & result,std
 
 void
 WimshBwManagerFairRR::findNode(WimaxNodeId src,WimaxNodeId dst,std::vector<eTn*> & nodes,std::vector<int> & result) {
-  for(int i = 0; i < nodes.size(); ++i) {
+  for(unsigned int i = 0; i < nodes.size(); ++i) {
     if(src == nodes[i]->src || src == nodes[i]->dst || dst == nodes[i]->src || dst == nodes[i]->dst) {
       result.push_back(nodes[i]->index);
     }
@@ -499,6 +531,7 @@ WimshBwManagerFairRR::findNode(WimaxNodeId src,WimaxNodeId dst,std::vector<eTn*>
 void 
 WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
 {
+  /*
   int N = mac_->phyMib()->slotPerFrame();
   if( !csch->getFlag() ) {
     //get BS grants to fit node's grants
@@ -522,6 +555,8 @@ WimshBwManagerFairRR::recvMshCsch (WimshMshCsch* csch)
       }
     }
   }
+  */
+  //leave it blank
 }
 
 /*

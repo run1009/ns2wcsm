@@ -108,6 +108,11 @@ class WimshMacMib : public TclObject {
 	std::list< Link > linkList_;
 
 	//! jpyu
+
+	std::vector<WimshMac *> nodeMac;
+
+	int numNodes;
+
 	std::vector<WimshChannel*> avlChannels;
 	int HRthreshold_;
 public:
@@ -119,6 +124,7 @@ public:
 	//! Handle the next frame timer.
 	void handle ();
 
+	WimshMac *getMac(int id) { return nodeMac[id]; }
 	//! Return the current frame number.
 	unsigned int frame () { return frame_; }
 

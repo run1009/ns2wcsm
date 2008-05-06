@@ -214,6 +214,8 @@ proc create_nodes {} {
     set macmib [new WimshMacMib]
     
     $macmib phymib $phymib
+
+    $macmib numNodes $opt(nodes)
     
     for {set j 0} {$j < $opt(channel)} {incr j} {
 	set chan($j) [new WimshChannel]
@@ -300,9 +302,13 @@ proc create_nodes {} {
 	$mac($i) initialize
     }
 
-    for {set i 1} {$i < $opt(nodes)} {incr i} {
-	$mac($i) BSnode $mac(0)
+    for {set i 0} {$i < $opt(nodes)} {incr i} {
+	$macmib mac $mac($i)
     }
+
+#    for {set i 1} {$i < $opt(nodes)} {incr i} {
+#	$mac($i) BSnode $mac(0)
+#    }
 }
 
 

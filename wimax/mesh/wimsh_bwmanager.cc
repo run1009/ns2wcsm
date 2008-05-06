@@ -35,7 +35,7 @@ WimshBwManager::WimshBwManager (WimshMac* m) : mac_ (m), timer_ (this)
 	dst_.resize (HORIZON);
 	channel_.resize (HORIZON);
 
-	src_.resize(HORIZON);
+	//	src_.resize(HORIZON);
 
 	for ( unsigned int i = 0 ; i < HORIZON ; i++ ) {
 		// clear all the bits of the frame maps
@@ -45,7 +45,7 @@ WimshBwManager::WimshBwManager (WimshMac* m) : mac_ (m), timer_ (this)
 		dst_[i].resize (MAX_SLOTS);
 		channel_[i].resize (MAX_SLOTS);
 
-		src_[i].resize(MAX_SLOTS);
+		//src_[i].resize(MAX_SLOTS);
 		// set all channels to 0
 		for ( unsigned int j = 0 ; j < MAX_SLOTS ; j++ ) channel_[i][j] = 0;
 	}
