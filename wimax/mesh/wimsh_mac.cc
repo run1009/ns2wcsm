@@ -1120,10 +1120,10 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
 
   assert (frames > 0);
 
-  bwmanager_->slotAllocation(message);
+  bwmanager_->slotAllocation(message,startFrame,frames);
 
 
-
+  //send csch(contains no message),just to notify SS to update the grants information
   setControlChannel(wimax::TX);
   burst->addMshCsch(csch);
   phy_[0]->sendBurst (burst);

@@ -238,7 +238,7 @@ WimshBwManagerFairRR::recvMshDsch (WimshMshDsch* dsch)
 }
 
 void 
-WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
+WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int startFrame,int frames)
 {
   struct Entry {
     WimaxNodeId index;
@@ -274,120 +274,124 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message)
   int numNodes = mac_->topology()->numNodes();
   int topo[numNodes][numNodes];
   int directTopo[numNodes][numNodes];
-  
+  int N = mac_->phyMib()->slotPerFrame();
 
-  //according to byteRdy, create topo
-  for(int i = 0; i < numNodes; ++i)
-    for(int j = 0; j < numNodes; ++j)
-      topo[i][j] = directTopo[i] = 0;
-  
-  //fecth the nexthop of (index, dst) by class topology
-
-  for(int i = 0; i < byteRdy.size(); ++i) {
-    if(byteRdy[i]->bytes != 0) {
-      WimaxNodeId nextHop = mac_->topology()->nextHop(byteRdy[i]->index,byteRdy[i]->dst);
-      topo[byteRdy[i]->index][nextHop] = topo[nextHop][byteRdy[i]->index] = 1;
-      directTopo[byteRdy[i]->index][nextHop] = 1;
-    }
-  }
-  
-  //perform algorithm to assign the channels
-  
-  //1.map edges to nodes which are colored by centain algorithm
-  std::vector<std::vector<bool> > newTopo;
-  std::vector<eTn *> nodes;
-  int nodeCount = 0;
-  for(int i = 0; i < numNodes; ++i) {
-    for(int j = 0; j < numNodes; ++j) {
-      if(directTopo[i][j] != 0) {
-	eTn * t = new eTn;
-	t->index = nodeCount++;
-	t->src = i;
-	t->dst = j;
-	nodes.push_back(t);
+  for(int currentSlot = 0;i < frames * N; currentSlot++) {
+    //according to byteRdy, create topo
+    for(int i = 0; i < numNodes; ++i)
+      for(int j = 0; j < numNodes; ++j)
+	topo[i][j] = directTopo[i] = 0;
+    
+    //fecth the nexthop of (index, dst) by class topology
+    
+    for(int i = 0; i < byteRdy.size(); ++i) {
+      if(byteRdy[i]->bytes != 0) {
+	WimaxNodeId nextHop = mac_->topology()->nextHop(byteRdy[i]->index,byteRdy[i]->dst);
+	topo[byteRdy[i]->index][nextHop] = topo[nextHop][byteRdy[i]->index] = 1;
+	directTopo[byteRdy[i]->index][nextHop] = 1;
       }
     }
-  }
-  //1.1.resize topo
-  newTopo.resize(nodeCount);
-  for(int i = 0; i < nodeCount; ++i) newTopo[i].resize(nodeCount);
-  for(int i = 0; i < nodeCount; ++i) 
-    for(int j = 0; j < nodeCount; ++j)
-      newTopo[i][j] = false;
-  //1.2.fit the newTopo
-  //TODO:we can use search algorithm to improve the effective
-  std::vector<int> result;
-  for(int i = 0; i < nodeCount; ++i) {
-    findNode(nodes[i]->src,nodes[i]->dst,nodes,result);
-    for(int j = 0; j < result.size(); ++j)
-      if(i != result[j]) newTopo[i][result[j]] = newTopo[result[j]][i] = true;
-    result.clear();
-  }
-
-  //assignment algorithm
-  //input: newTopo,channels,current Slot
-  //output: channels allocation
-  std::vector<int> chanAssign;
-  chanAssign.resize(nodeCount);
-  Desaturation(newTopo,mac_->nchannels(),chanAssign);
-
-  //calculate the bytes of one minislot
-  int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
-  int N = mac_->phyMib()->slotOerFrame();
-
   
-  //map edges graph to nodes graph, and update grants_,dst_,src_,channels_,then update byteRdy
-  for(int i = 0; i < nodeCount; ++i) {
-    if(chanAssign[nodes[i]->index] != -1) {
-      /*
-      for(int j = 0; j < byteRdy.size(); ++j) {
-	if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
-	  
-
-	} else if(nodes[i]->dst == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->src) {
-
-
+    //perform algorithm to assign the channels
+  
+    //1.map edges to nodes which are colored by centain algorithm
+    std::vector<std::vector<bool> > newTopo;
+    std::vector<eTn *> nodes;
+    int nodeCount = 0;
+    for(int i = 0; i < numNodes; ++i) {
+      for(int j = 0; j < numNodes; ++j) {
+	if(directTopo[i][j] != 0) {
+	  eTn * t = new eTn;
+	  t->index = nodeCount++;
+	  t->src = i;
+	  t->dst = j;
+	  nodes.push_back(t);
 	}
-	
       }
-      */
+    }
+    //1.1.resize topo
+    newTopo.resize(nodeCount);
+    for(int i = 0; i < nodeCount; ++i) newTopo[i].resize(nodeCount);
+    for(int i = 0; i < nodeCount; ++i) 
+      for(int j = 0; j < nodeCount; ++j)
+	newTopo[i][j] = false;
+    //1.2.fit the newTopo
+    //TODO:we can use search algorithm to improve the effective
+    std::vector<int> result;
+    for(int i = 0; i < nodeCount; ++i) {
+      findNode(nodes[i]->src,nodes[i]->dst,nodes,result);
+      for(int j = 0; j < result.size(); ++j)
+	if(i != result[j]) newTopo[i][result[j]] = newTopo[result[j]][i] = true;
+      result.clear();
+    }
+
+    //assignment algorithm
+    //input: newTopo,channels,current Slot
+    //output: channels allocation
+    std::vector<int> chanAssign;
+    chanAssign.resize(nodeCount);
+    Desaturation(newTopo,mac_->nchannels(),chanAssign);
+    
+    //calculate the bytes of one minislot
+    int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
+    //int N = mac_->phyMib()->slotPerFrame();
+
+  
+    //map edges graph to nodes graph, and update grants_,dst_,src_,channels_,then update byteRdy
+    for(int i = 0; i < nodeCount; ++i) {
+      if(chanAssign[nodes[i]->index] != -1) {
+	/*
+	  for(int j = 0; j < byteRdy.size(); ++j) {
+	  if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
+	  
+	  
+	  } else if(nodes[i]->dst == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->src) {
+	  
+	  
+	  }
+	  
+	  }
+	*/
+	for(int j = 0; j < byteRdy.size(); ++j) {
+	  if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
+	    int currentFrame = (startFrame + currentSlot / N) % HORIZON;
+	    src_[currentFrame][currentSlot % N] = nodes[i]->src;
+	    dst_[currentFrame][currentSlot % N] = nodes[i]->dst;
+	    if(nodes[i]->src == 0) grants_[currentFrame][currentSlot % N] = true;
+	    else grants_[currentFrame][currentSlot % N] = false;
+	    channel_[currentFrame][currentSlot % N] = chanAssign[nodes[i]->index];
+	    Entry* t = new Entry(*byteRdy[i]);
+	    preRdy.push_back(t);
+	    break;
+	  }
+	}
+      }
+    }
+    //update byteRdy
+    for(int i = 0; i < preRdy.size(); ++i) {
       for(int j = 0; j < byteRdy.size(); ++j) {
-	if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
-	  int currentFrame = (startFrame + currentSlot / N) % HORIZON;
-	  src_[currentFrame][currentSlot % N] = nodes[i]->src;
-	  dst_[currentFrame][currentSlot % N] = nodes[i]->dst;
-	  if(nodes[i]->src == 0) grants_[currentFrame][currentSlot % N] = true;
-	  else grants_[currentFrame][currentSlot % N] = false;
-	  channel_[currentFrame][currentSlot % N] = chanAssign[nodes[i]->index];
-	  Entry* t = new Entry(*byteRdy[i]);
-	  preRdy.push_back(t);
+	if(preRdy[i]->index == byteRdy[j]->index && preRdy[i]->dst == byteRdy[j]->dst) {
+	  byteRdy[j]->byte -= BytesPerSlot;
+	  int nextHop = mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst);
+	  if(nextHop != byteRdy[j]->dst) {
+	    for(int k = 0;k < byteRdy.size(); ++k)
+	      if(byteRdy[k]->index == nextHop && byteRdy[k]->dst == byteRdy[j]->dst)
+		byteRdy[k]->byte += BytesPerSlot;
+	    if(k == byteRdy.size()) {
+	      Entry * t = new Entry;
+	      t->index = nextHop;
+	      t->dst = byteRdy[j]->dst;
+	      t->byte = BytesPerSlot;
+	      byteRdy.push_back(t);
+	    }
+	  }
+	  if(byteRdy[j]->byte <= 0) byteRdy.erase(byteRdy.begin() + j);
 	  break;
 	}
       }
     }
-  }
-  //update byteRdy
-  for(int i = 0; i < preRdy.size(); ++i) {
-    for(int j = 0; j < byteRdy.size(); ++j) {
-      if(preRdy[i]->index == byteRdy[j]->index && preRdy[i]->dst == byteRdy[j]->dst) {
-	byteRdy[j]->byte -= BytesPerSlot;
-	int nextHop = mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst);
-	if(nextHop != byteRdy[j]->dst) {
-	  for(int k = 0;k < byteRdy.size(); ++k)
-	    if(byteRdy[k]->index == nextHop && byteRdy[k]->dst == byteRdy[j]->dst)
-	      byteRdy[k]->byte += BytesPerSlot;
-	  if(k == byteRdy.size()) {
-	    Entry * t = new Entry;
-	    t->index = nextHop;
-	    t->dst = byteRdy[j]->dst;
-	    t->byte = BytesPerSlot;
-	    byteRdy.push_back(t);
-	  }
-	}
-	if(byteRdy[j]->byte <= 0) byteRdy.erase(byteRdy.begin() + j);
-	break;
-      }
-    }
+    for(int i = 0; i < preRdy.size(); ++i) delete preRdy[i];
+    preRdy.clear();
   }
 }
 
