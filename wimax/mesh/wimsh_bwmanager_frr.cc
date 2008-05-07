@@ -421,6 +421,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     }
     for(int i = 0; i < preRdy.size(); ++i) delete preRdy[i];
     preRdy.clear();
+    chanAssign.clear();
   }
 }
 
@@ -433,10 +434,13 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
   saturation.resize(nodeNums);
   std::vector<int> uncolorNeigh;
   uncolorNeigh.resize(nodeNums);
+  std::vector<int> colored;
+  colored.resize(nodeNums);
   
   for(int i = 0; i < nodeNums; ++i) {
     uncolorNeigh[i] = saturation[i] = 0;
     result[i] = -1;
+    colored[i] = false;
   }
 
   for(int i = 0; i < nodeNums; ++i)
@@ -448,7 +452,7 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
     //TODO: sort the vector,and find the max value
     int max = -1,node,num = 0,k;
     for(int j = 0; j < nodeNums; ++j) {
-      if(max < saturation[j]) {
+      if(max < saturation[j] && colored[j] == false) {
 	max = saturation[j];
 	node = j;
 	num = 0;
@@ -456,28 +460,21 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
       if( max == saturation[j]) num++;
     }
     
-    if(num == 1) {
-      for(k = 0; k < channels; ++k) {
-	if(interfere(k,node,result,topo) == true) continue;
-	else {
-	  result[node] = k;
-	  break;
-	}
-      }
-    } else {
+    if(num != 1) {
       int maxNeigh = -1;
       for(int j = 0;j < nodeNums; ++j) {
-	if(max == saturation[j] && maxNeigh < uncolorNeigh[j]) {
+	if(max == saturation[j] && maxNeigh < uncolorNeigh[j] && colored[j] == false) {
 	  maxNeigh = uncolorNeigh[j];
 	  node = j;
      	}
       }
-      for(k = 0; k < channels; ++k) {
-	if(interfere(k,node,result,topo) == true) continue;
-	else {
-	  result[node] = k;
-	  break;
-	}
+    }
+    for(k = 0; k < channels; ++k) {
+      if(interfere(k,node,result,topo) == true) continue;
+      else {
+	result[node] = k;
+	colored[node] = true;
+	break;
       }
     }
     //update the saturation and uncolorNeigh
@@ -485,7 +482,7 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
       for(int j = 0; j < nodeNums; ++j) {
 	if(topo[node][j] == true) {
 	  uncolorNeigh[j]--;
-	  if(inColors(j,k,result,topo) == false) saturation[j]--;
+	  if(inColors(j,k,result,topo) == false) saturation[j]++;
 	}
       } 
     }
@@ -512,9 +509,9 @@ WimshBwManagerFairRR::interfere(int color,int node,std::vector<int> & result,std
 {
   for(unsigned int i = 0; i < result.size(); ++i) {
     if(topo[node][i] == true)
-      if(result[i] == color) return false;
+      if(result[i] == color) return true;
   }
-  return true;
+  return false;
 }
 
 

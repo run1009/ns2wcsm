@@ -1,7 +1,7 @@
 set opt(run) 1
 
 
-set opt(channel)	1
+set opt(channel)       10
 set opt(radio)		1
 
 set opt(chan-data-per)	0
@@ -338,8 +338,25 @@ proc create_connections {} {
     $ns connect $agtsrc $agtdst
     $app attach-agent $agtsrc
 
-    
 
+    set app2 [new Application/Traffic/CBR]
+    $app2 set packetSize_ 1000
+    $app2 set rate_ 100000
+
+    set agtsrc2 [new Agent/UDP]
+    set agtdst2 [new Agent/UDP]
+    
+    $ns at 3.1 "$app2 start"
+    $ns at 8.0 "$app2 stop"
+    
+    $macmib crc 2 crc
+    $macmib priority 2 1
+    $macmib precedence 2 0
+
+    $ns attach-agent $node(3) $agtsrc2
+    $ns attach-agent $node(5) $agtdst2
+    $ns connect $agtsrc2 $agtdst2
+    $app2 attach-agent $agtsrc2
 
     set app1 [new Application/Traffic/CBR]
     $app1 set packetSize_ 1000
@@ -416,10 +433,10 @@ puts "create node"
 create_connections
 create_profiles
 
-$ns stat add wimsh_mac_tpt avg rate
-#$ns stat add wimsh_chn_ctrl_tpt avg rate
-#$ns stat add wimsh_chn_data_tpt avg rate
-$ns stat add wimsh_active_flows avg continuous
+#$ns stat add wimsh_mac_tpt avg rate
+$ns stat add wimsh_chn_ctrl_tpt avg rate
+$ns stat add wimsh_chn_data_tpt avg rate
+#$ns stat add wimsh_active_flows avg continuous
 
 alive
 
