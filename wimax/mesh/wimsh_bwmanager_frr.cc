@@ -251,18 +251,20 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     std::list<WimshMshCsch::FlowEntry*> & flow = childCsch->getFlowEntries();
     std::list<WimshMshCsch::FlowEntry*>::iterator it;
     for(it = flow.begin(); it != flow.end(); ++it) {
-      for(unsigned int j = 0; j < byteRdy.size(); ++j) {
+      unsigned int j;
+      for(j = 0; j < byteRdy.size(); ++j) {
 	if(byteRdy[j]->index == (*it)->id && byteRdy[j]->dst == (*it)->towardId) {
 	  if((*it)->upFlow != 0) byteRdy[j]->bytes += (*it)->upFlow;
 	  else byteRdy[j]->bytes += (*it)->downFlow;
-	} else {
-	  Entry *entry = new Entry;
-	  entry->index = (*it)->id;
-	  entry->dst = (*it)->towardId;
-	  if((*it)->upFlow != 0) entry->bytes = (*it)->upFlow;
-	  else entry->bytes = (*it)->downFlow;
-	  byteRdy.push_back(entry);
 	}
+      }
+      if(j == byteRdy.size()) {
+	Entry *entry = new Entry;
+	entry->index = (*it)->id;
+	entry->dst = (*it)->towardId;
+	if((*it)->upFlow != 0) entry->bytes = (*it)->upFlow;
+	else entry->bytes = (*it)->downFlow;
+	byteRdy.push_back(entry);
       }
     }
   }
@@ -280,9 +282,10 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     
     //fecth the nexthop of (index, dst) by class topology
     
-    for(int i = 0; i < byteRdy.size(); ++i) {
+    for(unsigned int i = 0; i < byteRdy.size(); ++i) {
       if(byteRdy[i]->bytes != 0) {
 	WimaxNodeId nextHop = mac_->topology()->nextHop(byteRdy[i]->index,byteRdy[i]->dst);
+	//printf("%d %d %d\n",byteRdy[i]->index,byteRdy[i]->dst,nextHop);
 	topo[byteRdy[i]->index][nextHop] = topo[nextHop][byteRdy[i]->index] = 1;
 	directTopo[byteRdy[i]->index][nextHop] = 1;
       }
@@ -380,7 +383,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
 	    setAlloc[nodes[i]->dst] = true;
 
 
-	    Entry* t = new Entry(*byteRdy[i]);
+	    Entry* t = new Entry(*(byteRdy[i]));
 	    preRdy.push_back(t);
 	    break;
 	  }
@@ -457,7 +460,7 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
 	node = j;
 	num = 0;
       }
-      if( max == saturation[j]) num++;
+      if( max == saturation[j] && colored[j] == false) num++;
     }
     
     if(num != 1) {
@@ -935,6 +938,7 @@ WimshBwManagerFairRR::schedule (WimshMshCsch* csch)
 		entry->id = id;
 		if(parents == mac_->ndx2neigh(i) ) {
 			entry->upFlow = neigh_[i].backlog_;
+			entry->towardId = parents;
 		} else {
 			entry->downFlow = neigh_[i].backlog_;
 			entry->towardId = mac_->ndx2neigh(i);

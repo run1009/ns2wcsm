@@ -72,8 +72,8 @@ set opt(prfndx) {}
 
 
 
-set opt(warm) 2.0
-set opt(duration) 20.0
+set opt(warm) 0.0
+set opt(duration) 12
 
 set opt(random-nodeid) "off"
 
@@ -339,44 +339,44 @@ proc create_connections {} {
     $app attach-agent $agtsrc
 
 
-    set app2 [new Application/Traffic/CBR]
-    $app2 set packetSize_ 1000
-    $app2 set rate_ 100000
+   # set app2 [new Application/Traffic/CBR]
+   # $app2 set packetSize_ 1000
+   # $app2 set rate_ 100000
 
-    set agtsrc2 [new Agent/UDP]
-    set agtdst2 [new Agent/UDP]
+   # set agtsrc2 [new Agent/UDP]
+   # set agtdst2 [new Agent/UDP]
     
-    $ns at 3.1 "$app2 start"
-    $ns at 8.0 "$app2 stop"
+    #$ns at 3.1 "$app2 start"
+    #$ns at 8.0 "$app2 stop"
     
-    $macmib crc 2 crc
-    $macmib priority 2 1
-    $macmib precedence 2 0
+   # $macmib crc 2 crc
+    #$macmib priority 2 1
+    #$macmib precedence 2 0
 
-    $ns attach-agent $node(3) $agtsrc2
-    $ns attach-agent $node(5) $agtdst2
-    $ns connect $agtsrc2 $agtdst2
-    $app2 attach-agent $agtsrc2
+   # $ns attach-agent $node(3) $agtsrc2
+   # $ns attach-agent $node(5) $agtdst2
+   # $ns connect $agtsrc2 $agtdst2
+   # $app2 attach-agent $agtsrc2
 
-    set app1 [new Application/Traffic/CBR]
-    $app1 set packetSize_ 1000
-    $app1 set rate_ 100000
+   # set app1 [new Application/Traffic/CBR]
+   # $app1 set packetSize_ 1000
+   # $app1 set rate_ 100000
     
-    set agtsrc1 [new Agent/UDP]
-    set agtdst1 [new Agent/UDP]
-    $agtsrc1 set class_ 1
+  #  set agtsrc1 [new Agent/UDP]
+  #  set agtdst1 [new Agent/UDP]
+  #  $agtsrc1 set class_ 1
     
-    $ns at 3.1 "$app1 start"
-    $ns at 8.0 "$app1 stop"
+  #  $ns at 3.1 "$app1 start"
+  #  $ns at 8.0 "$app1 stop"
 
-    $macmib crc 1 crc
-    $macmib priority 1 1
-    $macmib precedence 1 0
+  #  $macmib crc 1 crc
+  #  $macmib priority 1 1
+  #  $macmib precedence 1 0
 
-    $ns attach-agent $node(4) $agtsrc1
-    $ns attach-agent $node(7) $agtdst1
-    $ns connect $agtsrc1 $agtdst1
-    $app1 attach-agent $agtsrc1
+   # $ns attach-agent $node(4) $agtsrc1
+  #  $ns attach-agent $node(7) $agtdst1
+  #  $ns connect $agtsrc1 $agtdst1
+  #  $app1 attach-agent $agtsrc1
 }
 
 
@@ -433,7 +433,7 @@ puts "create node"
 create_connections
 create_profiles
 
-#$ns stat add wimsh_mac_tpt avg rate
+$ns stat add wimsh_mac_tpt avg rate
 $ns stat add wimsh_chn_ctrl_tpt avg rate
 $ns stat add wimsh_chn_data_tpt avg rate
 #$ns stat add wimsh_active_flows avg continuous

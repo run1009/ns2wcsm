@@ -504,6 +504,7 @@ WimshMac::initialize ()
 		ndx2neigh_[i] = neighbors[i];
 		profile_[i] = wimax::QPSK_1_2;
 		alpha_[i] = WimshPhyMib::alpha[wimax::QPSK_1_2];
+		//alpha_[i] = WimshPhyMib::alpha[5];
 		fragbuf_[i] = new WimshFragmentationBuffer;
 		reasbuf_[i] = new WimaxReassemblyBuffer;
 		hNeigh_[i] = 0;
@@ -1093,6 +1094,14 @@ void
 BSWimshMac::opportunity(int startFrame,int endFrame)
 {
   assert (initialized );
+  //get BS request information
+  WimshMshCsch * myself = new WimshMshCsch;
+
+  myself->getTransmitId() = nodeId();
+  bwmanager_->schedule(myself);
+
+  message.push_back(myself);
+  
   WimshBurst* burst = new WimshBurst;
   
   WimshMshCsch * csch = new WimshMshCsch;
@@ -1112,6 +1121,9 @@ BSWimshMac::opportunity(int startFrame,int endFrame)
   bwmanager_->slotAllocation(message,startFrame,frames);
 
 
+
+  for(unsigned int i = 0; i < message.size();++i) delete message[i];
+  message.clear();
   //send csch(contains no message),just to notify SS to update the grants information
   setControlChannel(wimax::TX);
   burst->addMshCsch(csch);
@@ -1331,6 +1343,7 @@ SSWimshMac::opportunity(WimshMshCsch* csch)
 
   bwmanager_->schedule(csch);
 
+  
   //  hLastCsch_ = NOW;
 
 
