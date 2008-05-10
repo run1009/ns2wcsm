@@ -1,7 +1,7 @@
 set opt(run) 1
 
 
-set opt(channel)       10
+set opt(channel)       30
 set opt(radio)		1
 
 set opt(chan-data-per)	0
