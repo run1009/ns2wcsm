@@ -513,6 +513,7 @@ private:
 	void Desaturation(std::vector<std::vector<bool> > &,int,std::vector<int> &);
 	bool interfere(int,int,std::vector<int> &,std::vector<std::vector<bool> > &);
 	bool inColors(int,int,std::vector<int> &,std::vector<std::vector<bool> > &);
+	void MS(std::vector<std::vector<bool> >&,int,std::vector<int> &);
 };
 
 #endif // __NS2_WIMSH_BW_MANAGER_FRR_H

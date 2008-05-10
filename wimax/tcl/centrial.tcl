@@ -59,7 +59,7 @@ set opt(beta)	0.5
 
 
 set opt(scheduler)	"fifo"
-set opt(buffer)	1000000
+set opt(buffer)	10000000
 
 
 
@@ -72,8 +72,8 @@ set opt(prfndx) {}
 
 
 
-set opt(warm) 0.0
-set opt(duration) 12
+set opt(warm) 1.0
+set opt(duration) 15.0
 
 set opt(random-nodeid) "off"
 
@@ -128,7 +128,7 @@ proc create_topology {} {
     set topo_unused [new Topography]
     
     set chan_unused [new Channel/WirelessChannel]
-    puts "node-config"
+
     $ns node-config -llType LL -macType WimshMac -adhocRouting DumbAgent
 
     $ns node-config \
@@ -145,9 +145,11 @@ proc create_topology {} {
 	-channel $chan_unused
 
     set topo [new WimshTopology/Simple]
-    puts "create topo"
+
+
     #set topology nodes
-    set opt(nodes) 11
+    set opt(n) 5
+    set opt(nodes) [expr $opt(n) * $opt(n)]
 
     
 
@@ -180,20 +182,32 @@ proc create_topology {} {
 	    set invmap($i) $i
 	}
     }
-    $topo connect $map(0) $map(1)
-    $topo connect $map(0) $map(2)
-    $topo connect $map(1) $map(3)
-    $topo connect $map(1) $map(4)
-    $topo connect $map(2) $map(5)
-    $topo connect $map(3) $map(6)
-    $topo connect $map(3) $map(7)
-    $topo connect $map(3) $map(8)
-    $topo connect $map(5) $map(9)
-    $topo connect $map(5) $map(10)
+
+    for {set i 0} {$i < $opt(n)} {incr i} {
+	for {set j 0} {$j < $opt(n)} {incr j} {
+	    set curnode [expr $j + $opt(n) * $i]
+	    if {$i > 0} {
+		$topo connect $map($curnode) $map([expr $curnode - $opt(n)])
+	    }
+	    if {$j > 0} {
+		$topo connect $map($curnode) $map([expr $curnode - 1])
+	    }
+	}
+    }
+    #$topo connect $map(0) $map(1)
+    #$topo connect $map(0) $map(2)
+    #$topo connect $map(1) $map(3)
+    #$topo connect $map(1) $map(4)
+    #$topo connect $map(2) $map(5)
+    #$topo connect $map(3) $map(6)
+    #$topo connect $map(3) $map(7)
+    #$topo connect $map(3) $map(8)
+    #$topo connect $map(5) $map(9)
+    #$topo connect $map(5) $map(10)
 
     puts "before init"
     $topo initialize
-    puts "after"
+    puts "after init"
 }
 
 #########create nodes
@@ -234,9 +248,9 @@ proc create_nodes {} {
     for {set i 0} {$i < $opt(nodes)} {incr i} {
 	if { $i == 0 } {
 	    $ns node-config -macType WimshMac/BSWimshMac
-	    puts "before bsmac $invmap($i)"
+
 	    set node($invmap($i)) [$ns node]
-	    puts "after bsmac"
+
 	    $ns node-config -macType WimshMac/SSWimshMac
 	} else {
 	    set node($invmap($i)) [$ns node]
@@ -317,66 +331,115 @@ proc create_nodes {} {
 proc create_connections {} {
     global ns opt macmib node topo
 
-    set app [new Application/Traffic/CBR]
-    $app set packetSize_ 1000
-    $app set rate_ 100000
 
-    set agtsrc [new Agent/UDP]
-    set agtdst [new Agent/UDP]
+    for {set i 0} {$i < $opt(nodes)} {incr i} {
+	set app [new Application/Traffic/CBR]
+	$app set packetSize_ 1000
+	$app set rate_ 100000
 
-    $agtsrc set class_ 0
+	set agtsrc [new Agent/UDP]
+	set agtdst [new Agent/Null]
 
-    $ns at 2 "$app start"
-    $ns at 9.1 "$app stop"
+	$agtsrc set class_ $i
+
+	$ns at 2 "$app start"
+	$ns at 14 "$app stop"
+
+	$macmib crc $i crc
+	$macmib priority $i 1
+	$macmib precedence $i 0
+
+	$ns attach-agent $node($i) $agtsrc
+	$ns attach-agent $node([expr $opt(nodes) -1 - $i]) $agtdst
+
+	$ns connect $agtsrc $agtdst
+	$app attach-agent $agtsrc
+
+    }
+#    set app [new Application/Traffic/CBR]
+#    $app set packetSize_ 1000
+#    $app set rate_ 100000
+
+#    set agtsrc [new Agent/UDP]
+#    set agtdst [new Agent/Null]
+
+#    $agtsrc set class_ 0
+
+#    $ns at 2 "$app start"
+#    $ns at 9.1 "$app stop"
+#    
+#    $macmib crc 0 crc
+#    $macmib priority 0 1
+#    $macmib precedence 0 0
     
-    $macmib crc 0 crc
-    $macmib priority 0 1
-    $macmib precedence 0 0
+#    $ns attach-agent $node(8) $agtsrc
+#    $ns attach-agent $node(10) $agtdst
+#    $ns connect $agtsrc $agtdst
+#    $app attach-agent $agtsrc
+
+
+#    set app2 [new Application/Traffic/CBR]
+#    $app2 set packetSize_ 1000
+#    $app2 set rate_ 100000
+
+ #   set agtsrc2 [new Agent/UDP]
+ #   set agtdst2 [new Agent/Null]
+ #   
+ #   $agtsrc2 set class_ 2
+ #   
+ #   $ns at 1.1 "$app2 start"
+ #   $ns at 9.0 "$app2 stop"
     
-    $ns attach-agent $node(8) $agtsrc
-    $ns attach-agent $node(10) $agtdst
-    $ns connect $agtsrc $agtdst
-    $app attach-agent $agtsrc
+ #   $macmib crc 2 crc
+ #   $macmib priority 2 1
+ #   $macmib precedence 2 0
 
+  #  $ns attach-agent $node(5) $agtsrc2
+  #  $ns attach-agent $node(4) $agtdst2
+  #  $ns connect $agtsrc2 $agtdst2
+  #  $app2 attach-agent $agtsrc2
 
-   # set app2 [new Application/Traffic/CBR]
-   # $app2 set packetSize_ 1000
-   # $app2 set rate_ 100000
-
-   # set agtsrc2 [new Agent/UDP]
-   # set agtdst2 [new Agent/UDP]
+#    set app1 [new Application/Traffic/CBR]
+#    $app1 set packetSize_ 1000
+#    $app1 set rate_ 100000
     
-    #$ns at 3.1 "$app2 start"
-    #$ns at 8.0 "$app2 stop"
-    
-   # $macmib crc 2 crc
-    #$macmib priority 2 1
-    #$macmib precedence 2 0
+ #   set agtsrc1 [new Agent/UDP]
+ #   set agtdst1 [new Agent/Null]
 
-   # $ns attach-agent $node(3) $agtsrc2
-   # $ns attach-agent $node(5) $agtdst2
-   # $ns connect $agtsrc2 $agtdst2
-   # $app2 attach-agent $agtsrc2
-
-   # set app1 [new Application/Traffic/CBR]
-   # $app1 set packetSize_ 1000
-   # $app1 set rate_ 100000
-    
-  #  set agtsrc1 [new Agent/UDP]
-  #  set agtdst1 [new Agent/UDP]
   #  $agtsrc1 set class_ 1
     
-  #  $ns at 3.1 "$app1 start"
-  #  $ns at 8.0 "$app1 stop"
+  #  $ns at 1.1 "$app1 start"
+  #  $ns at 14.0 "$app1 stop"
 
-  #  $macmib crc 1 crc
-  #  $macmib priority 1 1
-  #  $macmib precedence 1 0
+ #   $macmib crc 1 crc
+ #   $macmib priority 1 1
+ #   $macmib precedence 1 0
 
-   # $ns attach-agent $node(4) $agtsrc1
-  #  $ns attach-agent $node(7) $agtdst1
+  #  $ns attach-agent $node(7) $agtsrc1
+  #  $ns attach-agent $node(9) $agtdst1
   #  $ns connect $agtsrc1 $agtdst1
-  #  $app1 attach-agent $agtsrc1
+   # $app1 attach-agent $agtsrc1
+
+  #  set app3 [new Application/Traffic/CBR]
+  #  $app3 set packetSize_ 1000
+  #  $app3 set rate_ 0.05Mb
+  #  $app3 set random_ 1
+
+  #  set agtsrc3 [new Agent/UDP]
+  #  set agtdst3 [new Agent/Null]
+    
+  #  $agtsrc3 set class_ 3
+    
+  #  $ns at 1.1 "$app3 start"
+  #  $ns at 14.1 "$app3 stop"
+   # $macmib crc 3 crc
+   # $macmib priority 3 1
+   # $macmib precedence 3 0
+    
+   # $ns attach-agent $node(4) $agtsrc3
+   # $ns attach-agent $node(6) $agtdst3
+   # $ns connect $agtsrc3 $agtdst3
+   # $app3 attach-agent $agtsrc3
 }
 
 
@@ -423,11 +486,8 @@ proc alive {} {
 #getopt $argc $argv
 
 init
-puts "initial"
 create_topology
-puts "create topology"
 create_nodes
-puts "create node"
 
 
 create_connections

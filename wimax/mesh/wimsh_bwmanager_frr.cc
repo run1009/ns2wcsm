@@ -284,10 +284,12 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     
     for(unsigned int i = 0; i < byteRdy.size(); ++i) {
       if(byteRdy[i]->bytes != 0) {
-	WimaxNodeId nextHop = mac_->topology()->nextHop(byteRdy[i]->index,byteRdy[i]->dst);
+	//WimaxNodeId nextHop = mac_->topology()->nextHop(byteRdy[i]->index,byteRdy[i]->dst);
 	//printf("%d %d %d\n",byteRdy[i]->index,byteRdy[i]->dst,nextHop);
-	topo[byteRdy[i]->index][nextHop] = topo[nextHop][byteRdy[i]->index] = 1;
-	directTopo[byteRdy[i]->index][nextHop] = 1;
+	//topo[byteRdy[i]->index][nextHop] = topo[nextHop][byteRdy[i]->index] = 1;
+	//directTopo[byteRdy[i]->index][nextHop] = 1;
+	topo[byteRdy[i]->index][byteRdy[i]->dst] = topo[byteRdy[i]->dst][byteRdy[i]->index] = 1;
+	directTopo[byteRdy[i]->index][byteRdy[i]->dst] = 1;
       }
     }
   
@@ -329,8 +331,9 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     //output: channels allocation
     std::vector<int> chanAssign;
     chanAssign.resize(nodeCount);
-    Desaturation(newTopo,mac_->nchannels(),chanAssign);
-    
+    //Desaturation(newTopo,mac_->nchannels(),chanAssign);
+ 
+    MS(newTopo,mac_->nchannels(),chanAssign);
     //calculate the bytes of one minislot
     int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
     //int N = mac_->phyMib()->slotPerFrame();
@@ -342,7 +345,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     for(unsigned int i = 0;i < setAlloc.size(); ++i) setAlloc[i] = false;
 
     //map edges graph to nodes graph, and update grants_,dst_,src_,channels_,then update byteRdy
-    for(int i = 0; i < nodeCount; ++i) {
+    for(unsigned int i = 0; i < nodeCount; ++i) {
       if(chanAssign[nodes[i]->index] != -1) {
 	/*
 	  for(int j = 0; j < byteRdy.size(); ++j) {
@@ -357,7 +360,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
 	  }
 	*/
 	
-	for(int j = 0; j < byteRdy.size(); ++j) {
+	for(unsigned int j = 0; j < byteRdy.size(); ++j) {
 	  if(nodes[i]->src == byteRdy[j]->index && mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst) == nodes[i]->dst) {
 	    int currentFrame = (startFrame + currentSlot / N) % HORIZON;
 	    /*
@@ -399,8 +402,8 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     }
 
     //update byteRdy
-    for(int i = 0; i < preRdy.size(); ++i) {
-      for(int j = 0; j < byteRdy.size(); ++j) {
+    for(unsigned int i = 0; i < preRdy.size(); ++i) {
+      for(unsigned int j = 0; j < byteRdy.size(); ++j) {
 	if(preRdy[i]->index == byteRdy[j]->index && preRdy[i]->dst == byteRdy[j]->dst) {
 	  byteRdy[j]->bytes -= BytesPerSlot;
 	  int nextHop = mac_->topology()->nextHop(byteRdy[j]->index,byteRdy[j]->dst);
@@ -422,9 +425,48 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
 	}
       }
     }
-    for(int i = 0; i < preRdy.size(); ++i) delete preRdy[i];
+    for(unsigned int i = 0; i < preRdy.size(); ++i) delete preRdy[i];
     preRdy.clear();
     chanAssign.clear();
+  }
+}
+
+void 
+WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std::vector<int> & result)
+{
+  unsigned int nodeNums = result.size();
+  std::vector<int> neigh;
+  neigh.resize(nodeNums);
+  std::vector<bool> colored;
+  colored.resize(nodeNums);
+  
+  for(unsigned int i = 0;i < nodeNums; i++) {
+    neigh[i] = 0;
+    result[i] = -1;
+    colored[i] = false;
+  }
+  
+  for(unsigned int i = 0; i < nodeNums; i++) 
+    for(unsigned int j = 0; j < nodeNums; j++)
+      if(topo[i][j] != false) neigh[i]++;
+  
+  for(unsigned int i = 0; i < nodeNums; ++i) {
+    int max = -1,node;
+    for(unsigned int j = 0; j < nodeNums; ++j) {
+      if(max < neigh[j] && colored[j] ==  false) {
+	max = neigh[j];
+	node = j;
+      }
+      int k;
+      for(k = 0;k < channels; ++k) {
+	if(interfere(k,node,result,topo) == true) continue;
+	else {
+	  result[node] = k;
+	  colored[node] = true;
+	  break;
+	}
+      }
+    }   
   }
 }
 

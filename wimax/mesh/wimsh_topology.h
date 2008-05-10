@@ -119,6 +119,8 @@ class WimshTopologySimple : public WimshTopology {
 	  the conflict matrix.
 	  */
 	Matrix<unsigned int> connectivity_;
+
+	Matrix<unsigned int> connect_;
 	//! Link vector.
 	/*!
 	  Hold all links in the topology. The vector index is assumed to be the

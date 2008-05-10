@@ -45,6 +45,7 @@ WimshTopologySimple::WimshTopologySimple ()
 {
 	update_ = true;
 	nextLink_ = 1;
+	printf("Simple\n");
 }
 
 int WimshTopologySimple::command (int argc, const char*const* argv)
@@ -58,6 +59,7 @@ int WimshTopologySimple::command (int argc, const char*const* argv)
 		if ( i == j ) return TCL_ERROR;
 		connectivity_.at (i, j) = nextLink_++;
 		connectivity_.at (j, i) = nextLink_++;
+		connect_.at(i,j) = connect_at(j,i) = 1;
 		//update_ = false;
 		update_ = 0;
 		return TCL_OK;
@@ -91,8 +93,11 @@ int WimshTopologySimple::command (int argc, const char*const* argv)
     * dump all the matrices to stderr
     */	 
 	else if ( argc == 2 && strcmp (argv[1], "initialize") == 0 ) {
+	  printf("before\n");
 		TreeGenerate();
+		printf("tree Generate\n");
 		recompute ();
+		printf("recompute\n");
 		return TCL_OK;
 	}
 	else if ( argc == 3 && strcmp(argv[1],"MaxNode") == 0) {
@@ -178,6 +183,8 @@ void WimshTopologySimple::recompute ()
 	// run the bellman ford algorithm
 	bellmanFord( M, dist, path );
 
+
+	printf("after bell\n");
 	// clear the n-hop neighbors structure
 	NM.clear ();
 
@@ -192,7 +199,9 @@ void WimshTopologySimple::recompute ()
 		}
 		NM[i] = nhops_neigh;
 		nhops_neigh.clear();
-	} 
+	}
+
+	printf("after neigh\n");
 
 	// compute the groups through coloring graph algorithm
 	// computeGroupsOpt (); // XXX
@@ -238,6 +247,7 @@ void WimshTopologySimple::recompute ()
 			nextHop_.at(i, j) = minHops[rng.uniform((int)minHops.size())];
 		}
 	}
+	printf("end\n");
 
 	// set the update flag
 	//update_ = true;
@@ -529,6 +539,7 @@ WimshTopologySimple::TreeGenerate()
     color[u] = 2;
   }
 
+
   // use the vector d to update the hops
   totalHopsNum = maxHop;
   for(unsigned i = 0;i < d.size(); ++i) hops[i] = d[i];
@@ -563,4 +574,14 @@ WimshTopologySimple::TreeGenerate()
   for(int i = 0; i < childNum.size(); ++i)
     for(unsigned j = 0; j < parentVec.size(); ++j)
       if(parentVec[j] == i) childNum[i]++;
+
+  FILE * f = fopen("graph","w+");
+  printf ("\n** connectivity graph **\n");
+  for ( unsigned int i = 0 ; i < connectivity_.getRows() ; i++ ) {
+    for ( unsigned int j = 0 ; j < connectivity_.getCols() ; j++ ) {
+      if ( j > 0 ) fprintf (f," ");
+      fprintf (f,"%3u", connectivity_.at(i, j));
+    }
+    fprintf (f,"\n");
+  }
 }
