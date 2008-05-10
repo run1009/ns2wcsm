@@ -469,7 +469,7 @@ WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std
 	  break;
 	}
       }
-    }   
+    }
   }
 }
 
@@ -532,7 +532,7 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
 	  uncolorNeigh[j]--;
 	  if(inColors(j,k,result,topo) == false) saturation[j]++;
 	}
-      } 
+      }
     }
   }
 }

@@ -73,7 +73,7 @@ set opt(prfndx) {}
 
 
 set opt(warm) 1.0
-set opt(duration) 15.0
+set opt(duration) 10.0
 
 set opt(random-nodeid) "off"
 
@@ -148,7 +148,7 @@ proc create_topology {} {
 
 
     #set topology nodes
-    set opt(n) 5
+    set opt(n) 6
     set opt(nodes) [expr $opt(n) * $opt(n)]
 
     
@@ -354,6 +354,7 @@ proc create_connections {} {
 
 	$ns connect $agtsrc $agtdst
 	$app attach-agent $agtsrc
+	#set i [expr $i + 1]
 
     }
 #    set app [new Application/Traffic/CBR]
