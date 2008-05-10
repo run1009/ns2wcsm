@@ -85,6 +85,8 @@ public:
 	virtual int parent(int) = 0;
 	virtual int ChildNum(int) = 0;
 	virtual std::vector<int>& getParent() = 0;
+
+	virtual Matrix<unsigned int> & getConnectMatrix() = 0;
 private:
 	WimshTopology (const WimshTopology&);   // not defined
 	void operator= (const WimshTopology&);  // not defined
@@ -215,6 +217,8 @@ public:
 	std::vector<int> &getParent() { return parentVec; }
 
 	int ChildNum(int id) {return childNum[id]; }
+
+	Matrix<unsigned int> & getConnectMatrix() { return connect_; }
 protected:
 	//! Compute the conflict and apsp matrices.
 	void recompute ();

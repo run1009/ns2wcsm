@@ -510,10 +510,10 @@ private:
 	void slotAllocation(std::vector<WimshMshCsch*> &,int,int);
 
 	//channels assignment algorithms
-	void Desaturation(std::vector<std::vector<bool> > &,int,std::vector<int> &);
-	bool interfere(int,int,std::vector<int> &,std::vector<std::vector<bool> > &);
+	void Desaturation(std::vector<std::vector<bool> > &,int,std::vector<int> &,std::vector<eTn *> &);
+	bool interfere(int,int,std::vector<int> &,std::vector<std::vector<bool> > &,std::vector<eTn *> &);
 	bool inColors(int,int,std::vector<int> &,std::vector<std::vector<bool> > &);
-	void MS(std::vector<std::vector<bool> >&,int,std::vector<int> &);
+	void MS(std::vector<std::vector<bool> >&,int,std::vector<int> &,std::vector<eTn*> &);
 };
 
 #endif // __NS2_WIMSH_BW_MANAGER_FRR_H

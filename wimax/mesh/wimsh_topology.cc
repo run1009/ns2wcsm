@@ -59,7 +59,7 @@ int WimshTopologySimple::command (int argc, const char*const* argv)
 		if ( i == j ) return TCL_ERROR;
 		connectivity_.at (i, j) = nextLink_++;
 		connectivity_.at (j, i) = nextLink_++;
-		connect_.at(i,j) = connect_at(j,i) = 1;
+		connect_.at(i,j) = connect_.at(j,i) = 1;
 		//update_ = false;
 		update_ = 0;
 		return TCL_OK;

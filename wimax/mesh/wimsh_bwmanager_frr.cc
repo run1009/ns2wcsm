@@ -29,7 +29,10 @@
 #include <math.h>
 #include <vector>
 
+#include <wimax_matrix.h>
+
 class WimPhyMib;
+
 
 WimshBwManagerFairRR::WimshBwManagerFairRR (WimshMac* m) :
 	WimshBwManager (m), wm_ (m)
@@ -331,9 +334,9 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     //output: channels allocation
     std::vector<int> chanAssign;
     chanAssign.resize(nodeCount);
-    //Desaturation(newTopo,mac_->nchannels(),chanAssign);
+    Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
  
-    MS(newTopo,mac_->nchannels(),chanAssign);
+    //MS(newTopo,mac_->nchannels(),chanAssign,nodes);
     //calculate the bytes of one minislot
     int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
     //int N = mac_->phyMib()->slotPerFrame();
@@ -432,7 +435,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
 }
 
 void 
-WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std::vector<int> & result)
+WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std::vector<int> & result,std::vector<eTn *> &nodes)
 {
   unsigned int nodeNums = result.size();
   std::vector<int> neigh;
@@ -459,7 +462,7 @@ WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std
       }
       int k;
       for(k = 0;k < channels; ++k) {
-	if(interfere(k,node,result,topo) == true) continue;
+	if(interfere(k,node,result,topo,nodes) == true) continue;
 	else {
 	  result[node] = k;
 	  colored[node] = true;
@@ -472,7 +475,7 @@ WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std
 
 
 void 
-WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int channels,std::vector<int> & result)
+WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int channels,std::vector<int> & result,std::vector<eTn *> & nodes)
 {
   int nodeNums = result.size();
   std::vector<int> saturation;
@@ -515,7 +518,7 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
       }
     }
     for(k = 0; k < channels; ++k) {
-      if(interfere(k,node,result,topo) == true) continue;
+      if(interfere(k,node,result,topo,nodes) == true) continue;
       else {
 	result[node] = k;
 	colored[node] = true;
@@ -550,11 +553,26 @@ WimshBwManagerFairRR::inColors(int node,int color,std::vector<int> & result,std:
 }
 
 bool 
-WimshBwManagerFairRR::interfere(int color,int node,std::vector<int> & result,std::vector<std::vector<bool> > & topo)
+WimshBwManagerFairRR::interfere(int color,int node,std::vector<int> & result,std::vector<std::vector<bool> > & topo,std::vector<eTn *> & nodes)
 {
+  //alias connect_
+  Matrix<unsigned int> & connect = mac_->topology()->getConnectMatrix();
   for(unsigned int i = 0; i < result.size(); ++i) {
     if(topo[node][i] == true)
       if(result[i] == color) return true;
+    if(result[i] == color) {
+      eTn * t1 = NULL,* t2 = NULL;
+      unsigned int j;
+      //get node information
+      for(j = 0; j < nodes.size(); j++) {
+	if(nodes[j]->index == i && t1 == NULL) t1 = nodes[j];
+	if(nodes[j]->index == node && t2 == NULL) t2 = nodes[j];
+	if(t1 != NULL && t2 != NULL) break;
+      }
+      //interfere?
+      if(j < nodes.size())
+	if(connect.at(t1->src,t2->dst) != 0 || connect.at(t2->src,t1->dst) != 0) return true;
+    }
   }
   return false;
 }
