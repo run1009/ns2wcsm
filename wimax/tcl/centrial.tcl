@@ -1,7 +1,7 @@
 set opt(run) 1
 
 
-set opt(channel)       30
+set opt(channel)       1
 set opt(radio)		1
 
 set opt(chan-data-per)	0
@@ -148,7 +148,7 @@ proc create_topology {} {
 
 
     #set topology nodes
-    set opt(n) 6
+    set opt(n) 3
     set opt(nodes) [expr $opt(n) * $opt(n)]
 
     
@@ -235,7 +235,7 @@ proc create_nodes {} {
 	set chan($j) [new WimshChannel]
 	$chan($j) topology $topo
 	$chan($j) propagation $opt(propagation)
-	$chan($j) id [expr 1 + $j]
+	$chan($j) id [expr $j]
 	if {$opt(chan-data-per) != 0} {
 	    $chan($j) error data $opt(chan-data-per)
 	}
@@ -332,51 +332,51 @@ proc create_connections {} {
     global ns opt macmib node topo
 
 
-    for {set i 0} {$i < $opt(nodes)} {incr i} {
-	set app [new Application/Traffic/CBR]
-	$app set packetSize_ 1000
-	$app set rate_ 100000
+#    for {set i 0} {$i < [expr $opt(nodes)-1]} {incr i} {
+#	set app [new Application/Traffic/CBR]
+#	$app set packetSize_ 1000
+#	$app set rate_ 100000
 
-	set agtsrc [new Agent/UDP]
-	set agtdst [new Agent/Null]
+#	set agtsrc [new Agent/UDP]
+#	set agtdst [new Agent/Null]
 
-	$agtsrc set class_ $i
+#	$agtsrc set class_ $i
 
-	$ns at 2 "$app start"
-	$ns at 14 "$app stop"
+#	$ns at 2 "$app start"
+#	$ns at 14 "$app stop"
 
-	$macmib crc $i crc
-	$macmib priority $i 1
-	$macmib precedence $i 0
+	#$macmib crc $i nocrc
+#	$macmib priority $i 1
+#	$macmib precedence $i 0
 
-	$ns attach-agent $node($i) $agtsrc
-	$ns attach-agent $node([expr $opt(nodes) -1 - $i]) $agtdst
+#	$ns attach-agent $node($i) $agtsrc
+#	$ns attach-agent $node([expr $i + 1]) $agtdst
 
-	$ns connect $agtsrc $agtdst
-	$app attach-agent $agtsrc
+#	$ns connect $agtsrc $agtdst
+#	$app attach-agent $agtsrc
 	#set i [expr $i + 1]
 
-    }
-#    set app [new Application/Traffic/CBR]
-#    $app set packetSize_ 1000
-#    $app set rate_ 100000
+#    }
+    set app [new Application/Traffic/CBR]
+    $app set packetSize_ 1000
+    $app set rate_ 100000
 
-#    set agtsrc [new Agent/UDP]
-#    set agtdst [new Agent/Null]
+    set agtsrc [new Agent/UDP]
+    set agtdst [new Agent/Null]
 
-#    $agtsrc set class_ 0
+    $agtsrc set class_ 0
 
-#    $ns at 2 "$app start"
-#    $ns at 9.1 "$app stop"
-#    
-#    $macmib crc 0 crc
-#    $macmib priority 0 1
-#    $macmib precedence 0 0
+    $ns at 2 "$app start"
+    $ns at 9.1 "$app stop"
     
-#    $ns attach-agent $node(8) $agtsrc
-#    $ns attach-agent $node(10) $agtdst
-#    $ns connect $agtsrc $agtdst
-#    $app attach-agent $agtsrc
+    $macmib crc 0 crc
+    $macmib priority 0 1
+    $macmib precedence 0 0
+    
+    $ns attach-agent $node(8) $agtsrc
+    $ns attach-agent $node(6) $agtdst
+    $ns connect $agtsrc $agtdst
+    $app attach-agent $agtsrc
 
 
 #    set app2 [new Application/Traffic/CBR]
@@ -497,6 +497,8 @@ create_profiles
 $ns stat add wimsh_mac_tpt avg rate
 $ns stat add wimsh_chn_ctrl_tpt avg rate
 $ns stat add wimsh_chn_data_tpt avg rate
+#$ns stat add Scheduling_length dst discrete 0 256 10000
+$ns stat add Scheduling_length avg counter
 #$ns stat add wimsh_active_flows avg continuous
 
 alive

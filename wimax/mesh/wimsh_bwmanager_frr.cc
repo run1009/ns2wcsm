@@ -276,8 +276,8 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
   int topo[numNodes][numNodes];
   int directTopo[numNodes][numNodes];
   int N = mac_->phyMib()->slotPerFrame();
-
-  for(int currentSlot = 0;currentSlot < frames * N; currentSlot++) {
+  int currentSlot;
+  for(currentSlot = 0;currentSlot < frames * N && byteRdy.size(); currentSlot++) {
     //according to byteRdy, create topo
     for(int i = 0; i < numNodes; ++i)
       for(int j = 0; j < numNodes; ++j)
@@ -334,9 +334,9 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     //output: channels allocation
     std::vector<int> chanAssign;
     chanAssign.resize(nodeCount);
-    Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
+    //Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
  
-    //MS(newTopo,mac_->nchannels(),chanAssign,nodes);
+    MS(newTopo,mac_->nchannels(),chanAssign,nodes);
     //calculate the bytes of one minislot
     int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
     //int N = mac_->phyMib()->slotPerFrame();
@@ -432,6 +432,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     preRdy.clear();
     chanAssign.clear();
   }
+  Stat::put("Scheduling_length",0,frames * N - currentSlot);
 }
 
 void 
@@ -465,10 +466,11 @@ WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std
 	if(interfere(k,node,result,topo,nodes) == true) continue;
 	else {
 	  result[node] = k;
-	  colored[node] = true;
+	  //colored[node] = true;
 	  break;
 	}
       }
+      colored[node] = true;
     }
   }
 }
