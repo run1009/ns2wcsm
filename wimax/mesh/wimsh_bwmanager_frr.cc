@@ -523,10 +523,11 @@ WimshBwManagerFairRR::Desaturation(std::vector<std::vector<bool> > & topo,int ch
       if(interfere(k,node,result,topo,nodes) == true) continue;
       else {
 	result[node] = k;
-	colored[node] = true;
+	//colored[node] = true;
 	break;
       }
     }
+    colored[node] = true;
     //update the saturation and uncolorNeigh
     if(k < channels) {
       for(int j = 0; j < nodeNums; ++j) {
