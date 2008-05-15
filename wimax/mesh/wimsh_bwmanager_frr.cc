@@ -334,9 +334,9 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     //output: channels allocation
     std::vector<int> chanAssign;
     chanAssign.resize(nodeCount);
-    //Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
+    Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
  
-    MS(newTopo,mac_->nchannels(),chanAssign,nodes);
+    //MS(newTopo,mac_->nchannels(),chanAssign,nodes);
     //calculate the bytes of one minislot
     int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
     //int N = mac_->phyMib()->slotPerFrame();
@@ -432,7 +432,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     preRdy.clear();
     chanAssign.clear();
   }
-  Stat::put("Scheduling_length",0,frames * N - currentSlot);
+  Stat::put("Scheduling_length",0,currentSlot);
 }
 
 void 

@@ -1,7 +1,7 @@
 set opt(run) 1
 
 
-set opt(channel)       1
+set opt(channel)       60
 set opt(radio)		1
 
 set opt(chan-data-per)	0
@@ -148,7 +148,7 @@ proc create_topology {} {
 
 
     #set topology nodes
-    set opt(n) 3
+    set opt(n) 6
     set opt(nodes) [expr $opt(n) * $opt(n)]
 
     
@@ -332,51 +332,50 @@ proc create_connections {} {
     global ns opt macmib node topo
 
 
-#    for {set i 0} {$i < [expr $opt(nodes)-1]} {incr i} {
-#	set app [new Application/Traffic/CBR]
-#	$app set packetSize_ 1000
-#	$app set rate_ 100000
+    for {set i 0} {$i < [expr $opt(nodes)-3]} {incr i} {
+	set app [new Application/Traffic/CBR]
+	$app set packetSize_ 1000
+	$app set rate_ 100000
+	set agtsrc [new Agent/UDP]
+	set agtdst [new Agent/Null]
 
-#	set agtsrc [new Agent/UDP]
-#	set agtdst [new Agent/Null]
+	$agtsrc set class_ $i
 
-#	$agtsrc set class_ $i
-
-#	$ns at 2 "$app start"
-#	$ns at 14 "$app stop"
+	$ns at 2 "$app start"
+	$ns at 9 "$app stop"
 
 	#$macmib crc $i nocrc
-#	$macmib priority $i 1
-#	$macmib precedence $i 0
+	$macmib priority $i 1
+	$macmib precedence $i 0
 
-#	$ns attach-agent $node($i) $agtsrc
-#	$ns attach-agent $node([expr $i + 1]) $agtdst
+	$ns attach-agent $node($i) $agtsrc
+	$ns attach-agent $node([expr $i + 3]) $agtdst
 
-#	$ns connect $agtsrc $agtdst
-#	$app attach-agent $agtsrc
+	$ns connect $agtsrc $agtdst
+	$app attach-agent $agtsrc
 	#set i [expr $i + 1]
 
-#    }
-    set app [new Application/Traffic/CBR]
-    $app set packetSize_ 1000
-    $app set rate_ 100000
+    }
+#    set app [new Application/Traffic/CBR]
+#    $app set packetSize_ 1000
+#    $app set rate_ 100000
 
-    set agtsrc [new Agent/UDP]
-    set agtdst [new Agent/Null]
+#    set agtsrc [new Agent/UDP]
+#    set agtdst [new Agent/Null]
 
-    $agtsrc set class_ 0
+#    $agtsrc set class_ 0
 
-    $ns at 2 "$app start"
-    $ns at 9.1 "$app stop"
+#    $ns at 2 "$app start"
+#    $ns at 9.1 "$app stop"
     
-    $macmib crc 0 crc
-    $macmib priority 0 1
-    $macmib precedence 0 0
+#    $macmib crc 0 crc
+#    $macmib priority 0 1
+#    $macmib precedence 0 0
     
-    $ns attach-agent $node(8) $agtsrc
-    $ns attach-agent $node(6) $agtdst
-    $ns connect $agtsrc $agtdst
-    $app attach-agent $agtsrc
+#    $ns attach-agent $node(8) $agtsrc
+#    $ns attach-agent $node(6) $agtdst
+#    $ns connect $agtsrc $agtdst
+#    $app attach-agent $agtsrc
 
 
 #    set app2 [new Application/Traffic/CBR]
