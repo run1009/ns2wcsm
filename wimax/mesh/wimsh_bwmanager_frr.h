@@ -514,6 +514,8 @@ private:
 	bool interfere(int,int,std::vector<int> &,std::vector<std::vector<bool> > &,std::vector<eTn *> &);
 	bool inColors(int,int,std::vector<int> &,std::vector<std::vector<bool> > &);
 	void MS(std::vector<std::vector<bool> >&,int,std::vector<int> &,std::vector<eTn*> &);
+	void Nearest(std::vector<std::vector<bool> >&,int ,std::vector<int> &,std::vector<eTn*> &);
+	void Nearest1(std::vector<std::vector<bool> >&,int ,std::vector<int> &,std::vector<eTn*> &);
 };
 
 #endif // __NS2_WIMSH_BW_MANAGER_FRR_H

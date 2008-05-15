@@ -218,6 +218,7 @@ public:
 
 	int ChildNum(int id) {return childNum[id]; }
 
+
 	Matrix<unsigned int> & getConnectMatrix() { return connect_; }
 protected:
 	//! Compute the conflict and apsp matrices.

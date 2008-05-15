@@ -28,6 +28,7 @@
 #include <wimsh_packet.h>
 #include <math.h>
 #include <vector>
+#include <queue>
 
 #include <wimax_matrix.h>
 
@@ -334,8 +335,8 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     //output: channels allocation
     std::vector<int> chanAssign;
     chanAssign.resize(nodeCount);
-    Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
- 
+    //Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
+    Nearest1(newTopo,mac_->nchannels(),chanAssign,nodes);
     //MS(newTopo,mac_->nchannels(),chanAssign,nodes);
     //calculate the bytes of one minislot
     int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
@@ -433,6 +434,120 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     chanAssign.clear();
   }
   Stat::put("Scheduling_length",0,currentSlot);
+}
+
+
+void
+WimshBwManagerFairRR::Nearest1(std::vector<std::vector<bool> >& topo,int channels,std::vector<int> & result,std::vector<eTn *> & nodes)
+{
+  std::queue<unsigned int> q,q1,seq;
+  std::vector<unsigned int> q2;
+  unsigned int nodeNums = result.size();
+
+  for(unsigned int i = 0; i < nodeNums; i++) result[i] = -1;
+
+  q1.push(0);
+  q.push(0);
+  std::vector<int> &parent = mac_->topology()->getParent();
+  while(!q1.empty()) {
+    int current = q1.front();
+    q1.pop();
+    for(unsigned int i = 0;i < parent.size(); ++i) 
+      if(parent[i] == current) {
+	//q1.push(i);
+	//q.push(i);
+	q2.push_back(i);
+      }
+    while(!q2.empty()) {
+      int max = -1,node,temp;
+      for(unsigned int i = 0; i < q2.size(); i++) {
+	if(max < mac_->topology()->ChildNum(q2[i])) {
+	  max = mac_->topology()->ChildNum(q2[i]);
+	  node = q2[i];
+	  temp = i;
+	}
+      }
+      q1.push(node);
+      q.push(node);
+      q2.erase(q2.begin() + temp);
+    }
+  }
+
+  //bfs
+  std::vector<bool> selected;
+  selected.resize(nodeNums);
+  for(unsigned int i = 0; i < nodeNums; i++) selected[i] = false;
+  while(!q.empty()) {
+    unsigned int current = q.front();
+    q.pop();
+    for(unsigned int i = 0; i < nodes.size(); ++i) {
+      if(selected[nodes[i]->index] == false && (nodes[i]->src == current || nodes[i]->dst == current)) {
+	selected[nodes[i]->index] = true;
+	seq.push(nodes[i]->index);
+	//q.push((nodes[i]->src == current ? nodes[i]->dst : nodes[i]->src));
+      }
+    }
+  }
+  
+  while(!seq.empty()) {
+    unsigned int current = seq.front();
+    seq.pop();
+    for(int k = 0; k < channels; ++k) {
+      if(interfere(k,current,result,topo,nodes) == false) {
+	result[current] = k;
+	break;
+      }
+    }
+  }
+}
+
+void 
+WimshBwManagerFairRR::Nearest(std::vector<std::vector<bool> >& topo,int channels,std::vector<int> & result,std::vector<eTn *> & nodes)
+{
+  std::queue<unsigned int> q,q1,seq;
+  unsigned int nodeNums = result.size();
+
+  for(unsigned int i = 0; i < nodeNums; i++) result[i] = -1;
+
+  q1.push(0);
+  q.push(0);
+  std::vector<int> &parent = mac_->topology()->getParent();
+  while(!q1.empty()) {
+    int current = q1.front();
+    q1.pop();
+    for(unsigned int i = 0;i < parent.size(); ++i) 
+      if(parent[i] == current) {
+	q1.push(i);
+	q.push(i);
+      }
+  }
+
+  //bfs
+  std::vector<bool> selected;
+  selected.resize(nodeNums);
+  for(unsigned int i = 0; i < nodeNums; i++) selected[i] = false;
+  while(!q.empty()) {
+    unsigned int current = q.front();
+    q.pop();
+    for(unsigned int i = 0; i < nodes.size(); ++i) {
+      if(selected[nodes[i]->index] == false && (nodes[i]->src == current || nodes[i]->dst == current)) {
+	selected[nodes[i]->index] = true;
+	seq.push(nodes[i]->index);
+	//q.push((nodes[i]->src == current ? nodes[i]->dst : nodes[i]->src));
+      }
+    }
+  }
+  
+  while(!seq.empty()) {
+    unsigned int current = seq.front();
+    seq.pop();
+    for(int k = 0; k < channels; ++k) {
+      if(interfere(k,current,result,topo,nodes) == false) {
+	result[current] = k;
+	break;
+      }
+    }
+  }
 }
 
 void 

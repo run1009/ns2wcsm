@@ -148,7 +148,7 @@ proc create_topology {} {
 
 
     #set topology nodes
-    set opt(n) 6
+    set opt(n) 4
     set opt(nodes) [expr $opt(n) * $opt(n)]
 
     
