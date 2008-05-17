@@ -575,13 +575,17 @@ WimshTopologySimple::TreeGenerate()
     for(unsigned j = 0; j < parentVec.size(); ++j)
       if(parentVec[j] == i) childNum[i]++;
 
-  FILE * f = fopen("graph","w+");
-  printf ("\n** connectivity graph **\n");
-  for ( unsigned int i = 0 ; i < connectivity_.getRows() ; i++ ) {
-    for ( unsigned int j = 0 ; j < connectivity_.getCols() ; j++ ) {
-      if ( j > 0 ) fprintf (f," ");
-      fprintf (f,"%3u", connectivity_.at(i, j));
-    }
-    fprintf (f,"\n");
-  }
+
+  printf("\n");
+  for(unsigned int i = 0;i < parentVec.size();i++) printf("%d ",parentVec[i]);
+  printf("\n");
+  //FILE * f = fopen("graph","w+");
+  //printf ("\n** connectivity graph **\n");
+  //for ( unsigned int i = 0 ; i < connectivity_.getRows() ; i++ ) {
+  //for ( unsigned int j = 0 ; j < connectivity_.getCols() ; j++ ) {
+  //if ( j > 0 ) fprintf (f," ");
+  //fprintf (f,"%3u", connectivity_.at(i, j));
+  //}
+  //fprintf (f,"\n");
+  //}
 }

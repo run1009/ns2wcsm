@@ -148,11 +148,12 @@ proc create_topology {} {
 
 
     #set topology nodes
-    set opt(n) 4
-    set opt(nodes) [expr $opt(n) * $opt(n)]
-
+    #set opt(n) 4
+    #set opt(nodes) [expr $opt(n) * $opt(n)]
+    set opt(nodes) 25
     
-
+    set opt(n) 25
+    set opt(c_neighbor) 14
 
     if { $opt(random-nodeid) == "on" } {
 	for {set i 0} {$i < $opt(nodes) } {incr i} {
@@ -183,17 +184,47 @@ proc create_topology {} {
 	}
     }
 
-    for {set i 0} {$i < $opt(n)} {incr i} {
-	for {set j 0} {$j < $opt(n)} {incr j} {
-	    set curnode [expr $j + $opt(n) * $i]
-	    if {$i > 0} {
-		$topo connect $map($curnode) $map([expr $curnode - $opt(n)])
-	    }
-	    if {$j > 0} {
-		$topo connect $map($curnode) $map([expr $curnode - 1])
-	    }
+    #for {set i 0} {$i < $opt(n)} {incr i} {
+#	for {set j 0} {$j < $opt(n)} {incr j} {
+#	    set curnode [expr $j + $opt(n) * $i]
+#	    if {$i > 0} {
+#		$topo connect $map($curnode) $map([expr $curnode - $opt(n)])
+#	    }
+#	    if {$j > 0} {
+#		$topo connect $map($curnode) $map([expr $curnode - 1])
+#	    }
+#	}
+#    }
+    
+    for { set i 0 } { $i < $opt(n) } { incr i } {
+	set degree($i) 0
+	for { set j 0 } { $j < $opt(n) } { incr j } {
+	    set connectMatrix($i,$j) 0
 	}
     }
+    set currentNode 1
+    set E [expr $opt(n) * $opt(c_neighbor) / 2]
+    puts "E is $E"
+    puts "enter the algorithm"
+    for { set i 0 } { $i < $E } { } {
+	for { set j 0 } { $j < $opt(n) } { incr j} {
+	    if { $currentNode != $j && $connectMatrix($currentNode,$j) == 0 \
+		     && $degree($currentNode) < $opt(c_neighbor) \
+		     && $degree($j) < $opt(c_neighbor) } {
+		$topo connect $map($currentNode) $map($j)
+		set degree($currentNode) [expr $degree($currentNode) + 1]
+		set degree($j) [expr $degree($j) + 1]
+		set connectMatrix($currentNode,$j) 1
+		set currentNode [expr ($currentNode + 1) % $opt(n)]
+		set i [expr $i + 1]
+	    }
+	    if {$degree($currentNode) >= $opt(c_neighbor) } {
+		set currentNode [expr ($currentNode + 1) % $opt(n)]
+	    }
+	    #puts "degree is $degree($currentNode)"
+	}
+    }
+    puts "exit the algorithm"
     #$topo connect $map(0) $map(1)
     #$topo connect $map(0) $map(2)
     #$topo connect $map(1) $map(3)
@@ -258,8 +289,10 @@ proc create_nodes {} {
 	
 	set mac($i) [$node($invmap($i)) getMac 0]
 	
+	#$mac($i) index $invmap($i)
 	$mac($i) index $invmap($i)
-    
+	#$mac($i) nodeid $invmap($i)
+
 	$mac($i) macmib $macmib
 	$mac($i) phymib $phymib
     
@@ -332,27 +365,55 @@ proc create_connections {} {
     global ns opt macmib node topo
 
 
-    for {set i 0} {$i < [expr $opt(nodes)-3]} {incr i} {
+    for {set i 7} {$i < $opt(nodes) - 5} {incr i} {
 	set app [new Application/Traffic/CBR]
-	$app set packetSize_ 1000
+	$app set packetSize_ 100
 	$app set rate_ 100000
 	set agtsrc [new Agent/UDP]
 	set agtdst [new Agent/Null]
 
+#	set app1 [new Application/Traffic/CBR]
+#	$app1 set packetSize_ 1000
+#	$app1 set rate_ 100000
+
+#	set agtsrc1 [new Agent/UDP]
+#	set agtdst1 [new Agent/Null]
+
+
 	$agtsrc set class_ $i
 
+#	$agtsrc1 set class_ [expr $i + $opt(nodes)]
 	$ns at 2 "$app start"
 	$ns at 9 "$app stop"
 
+#	$ns at 2 "$app1 start"
+#	$ns at 9 "$app1 stop"
+	
 	#$macmib crc $i nocrc
 	$macmib priority $i 1
 	$macmib precedence $i 0
+	
+#	$macmib priority [expr $i + $opt(nodes)] 1
+#	$macmib precedence [expr $i + $opt(nodes)] 0
 
 	$ns attach-agent $node($i) $agtsrc
-	$ns attach-agent $node([expr $i + 3]) $agtdst
+	$ns attach-agent $node(0) $agtdst
+
+#	$ns attach-agent $node($i) $agtsrc1
+#	$ns attach-agent $node(0) $agtdst1
 
 	$ns connect $agtsrc $agtdst
 	$app attach-agent $agtsrc
+
+
+	set tag [new e2et]
+	set mon [new e2em]
+	$agtsrc attach-e2et $tag
+	$agtdst attach-e2em $mon
+	$mon index $i
+	$mon start-log
+#	$ns connect $agtsrc1 $agtdst1
+#	$app1 attach-agent $agtsrc1
 	#set i [expr $i + 1]
 
     }
@@ -499,6 +560,7 @@ $ns stat add wimsh_chn_data_tpt avg rate
 #$ns stat add Scheduling_length dst discrete 0 256 10000
 $ns stat add Scheduling_length avg counter
 #$ns stat add wimsh_active_flows avg continuous
+$ns stat add e2e_tpt avg rate
 
 alive
 

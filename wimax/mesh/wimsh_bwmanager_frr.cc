@@ -336,7 +336,8 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     std::vector<int> chanAssign;
     chanAssign.resize(nodeCount);
     //Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
-    Nearest1(newTopo,mac_->nchannels(),chanAssign,nodes);
+    Nearest(newTopo,mac_->nchannels(),chanAssign,nodes);
+    //Nearest1(newTopo,mac_->nchannels(),chanAssign,nodes,byteRdy);
     //MS(newTopo,mac_->nchannels(),chanAssign,nodes);
     //calculate the bytes of one minislot
     int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
@@ -438,7 +439,7 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
 
 
 void
-WimshBwManagerFairRR::Nearest1(std::vector<std::vector<bool> >& topo,int channels,std::vector<int> & result,std::vector<eTn *> & nodes)
+WimshBwManagerFairRR::Nearest1(std::vector<std::vector<bool> >& topo,int channels,std::vector<int> & result,std::vector<eTn *> & nodes,std::vector<Entry *> & byteRdy)
 {
   std::queue<unsigned int> q,q1,seq;
   std::vector<unsigned int> q2;
@@ -459,10 +460,15 @@ WimshBwManagerFairRR::Nearest1(std::vector<std::vector<bool> >& topo,int channel
 	q2.push_back(i);
       }
     while(!q2.empty()) {
-      int max = -1,node,temp;
+      int max = -1,node,temp,bytes = 0;
       for(unsigned int i = 0; i < q2.size(); i++) {
-	if(max < mac_->topology()->ChildNum(q2[i])) {
-	  max = mac_->topology()->ChildNum(q2[i]);
+	bytes = 0;
+	for(unsigned int j = 0;j < byteRdy.size(); ++j) {
+	  if(byteRdy[j]->index == q2[i] || byteRdy[j]->dst == q2[i]) 
+	    bytes += byteRdy[j]->bytes;
+	}
+	if(max < bytes) {
+	  max = bytes;
 	  node = q2[i];
 	  temp = i;
 	}
@@ -690,6 +696,24 @@ WimshBwManagerFairRR::interfere(int color,int node,std::vector<int> & result,std
       //interfere?
       if(j < nodes.size())
 	if(connect.at(t1->src,t2->dst) != 0 || connect.at(t2->src,t1->dst) != 0) return true;
+    }
+  }
+
+  //single transceiver
+  eTn temp;
+  for(unsigned int i = 0;i < nodes.size(); ++i) 
+    if(nodes[i]->index == node) {
+      temp.index = node;
+      temp.src = nodes[i] -> src;
+      temp.dst = nodes[i] -> dst;
+    }
+  for(unsigned int i = 0;i < result.size(); ++i) {
+    if(result[i] != -1) {//note that node's result is -1
+      unsigned int j;
+      for(j = 0; j < nodes.size(); j++)
+	if(nodes[j]->index == i) break;
+      if(j < nodes.size())
+	if(nodes[j]->src == temp.dst || nodes[j]->dst == temp.src || nodes[j]->src == temp.src || nodes[j]->dst == temp.dst) return true;
     }
   }
   return false;
