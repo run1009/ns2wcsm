@@ -156,7 +156,7 @@ proc create_topology {} {
     set opt(channel_assignment) "nearest"
     #set opt(channel_assignment) "MS"
     set opt(n) 25
-    set opt(c_neighbor) 6
+    set opt(c_neighbor) 10
 
     if { $opt(random-nodeid) == "on" } {
 	for {set i 0} {$i < $opt(nodes) } {incr i} {
@@ -371,7 +371,7 @@ proc create_connections {} {
 
     for {set i 1} {$i < $opt(nodes)} {incr i} {
 	set app [new Application/Traffic/CBR]
-	$app set packetSize_ 100
+	$app set packetSize_ 1000
 	$app set rate_ 100000
 	set agtsrc [new Agent/UDP]
 	set agtdst [new Agent/Null]

@@ -58,6 +58,7 @@ WimshPhyMib::command (int argc, const char*const* argv)
 		return TCL_OK;
 	} else if ( argc == 3 && strcmp (argv[1], "frameDuration") == 0 ) {
 		frameDuration_ = 1.0e-3 * atof (argv[2]);
+		printf("frameDuration(s) : %lf\n",frameDuration_);
 		return TCL_OK;
 	} else if ( argc == 3 && strcmp (argv[1], "controlSlots") == 0 ) {
 		controlSlots_ = (unsigned int) atoi (argv[2]);
