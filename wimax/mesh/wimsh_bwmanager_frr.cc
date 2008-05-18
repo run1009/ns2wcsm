@@ -600,17 +600,17 @@ WimshBwManagerFairRR::MS(std::vector<std::vector<bool> > & topo,int channels,std
 	max = neigh[j];
 	node = j;
       }
-      int k;
-      for(k = 0;k < channels; ++k) {
-	if(interfere(k,node,result,topo,nodes) == true) continue;
-	else {
-	  result[node] = k;
-	  //colored[node] = true;
-	  break;
-	}
-      }
-      colored[node] = true;
     }
+    int k;
+    for(k = 0;k < channels; ++k) {
+      if(interfere(k,node,result,topo,nodes) == true) continue;
+      else {
+	result[node] = k;
+	//colored[node] = true;
+	break;
+      }
+    }
+    colored[node] = true;
   }
 }
 
