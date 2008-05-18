@@ -138,6 +138,8 @@ protected:
 	  WimaxNodeId dst;
 	  int bytes;
 	};
+	
+	char *channel_assignment;
 
 	//! Array of neighbor descriptors for bandwidth requesting/granting.
 	std::vector<NeighDesc> neigh_;

@@ -65,6 +65,7 @@ WimshBwManagerFairRR::WimshBwManagerFairRR (WimshMac* m) :
 	ddTimer_               = 0;
 	minGrant_              = 1;
 	
+	channel_assignment	= NULL;
 	//backlog_	       = 0;
 }
 
@@ -190,6 +191,11 @@ WimshBwManagerFairRR::command (int argc, const char*const* argv)
 		return TCL_OK;
 	} else if ( strcmp (argv[0], "wm") == 0 ) {
 		return wm_.command (argc - 1, argv + 1);
+	} else if ( argc == 2 && strcmp (argv[0],"channel-assignment") == 0) {
+	  channel_assignment = (char *)malloc(strlen(argv[1]) + 1);
+	  strcpy(channel_assignment,argv[1]);
+	  printf("channel_assigment argv[0] is %s\n",channel_assignment);
+	  return TCL_OK;
 	}
 
 	return TCL_ERROR;
@@ -335,10 +341,22 @@ WimshBwManagerFairRR::slotAllocation(std::vector<WimshMshCsch*> & message,int st
     //output: channels allocation
     std::vector<int> chanAssign;
     chanAssign.resize(nodeCount);
-    //Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
-    Nearest(newTopo,mac_->nchannels(),chanAssign,nodes);
-    //Nearest1(newTopo,mac_->nchannels(),chanAssign,nodes,byteRdy);
-    //MS(newTopo,mac_->nchannels(),chanAssign,nodes);
+    
+    //printf("channel assignment algorithm is ");
+    if(strcmp(channel_assignment,"desaturation") == 0) {
+      Desaturation(newTopo,mac_->nchannels(),chanAssign,nodes);
+      //printf("desaturation\n");
+    } else if(strcmp(channel_assignment,"nearest") == 0) {
+      Nearest(newTopo,mac_->nchannels(),chanAssign,nodes);
+      //printf("nearest\n");
+    } else if(strcmp(channel_assignment,"MS") == 0) {
+      //Nearest1(newTopo,mac_->nchannels(),chanAssign,nodes,byteRdy);
+      MS(newTopo,mac_->nchannels(),chanAssign,nodes);
+      //printf("MS\n");
+    } else {
+      printf("have not been impelement\n");
+      exit(1);
+    }
     //calculate the bytes of one minislot
     int BytesPerSlot = WimshPhyMib::alpha[0] * mac_->phyMib()->symPerSlot();
     //int N = mac_->phyMib()->slotPerFrame();

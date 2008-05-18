@@ -152,8 +152,11 @@ proc create_topology {} {
     #set opt(nodes) [expr $opt(n) * $opt(n)]
     set opt(nodes) 25
     
+    #set opt(channel_assignment) "desaturation"
+    set opt(channel_assignment) "nearest"
+    #set opt(channel_assignment) "MS"
     set opt(n) 25
-    set opt(c_neighbor) 14
+    set opt(c_neighbor) 6
 
     if { $opt(random-nodeid) == "on" } {
 	for {set i 0} {$i < $opt(nodes) } {incr i} {
@@ -339,6 +342,7 @@ proc create_nodes {} {
 	
 	$mac($i) bwmanager wm weight-flow $opt(weight-flow)
 	
+	$mac($i) bwmanager channel-assignment $opt(channel_assignment)
     
 	#configure scheduler
 	$mac($i) scheduler size $opt(buffer)
@@ -365,7 +369,7 @@ proc create_connections {} {
     global ns opt macmib node topo
 
 
-    for {set i 7} {$i < $opt(nodes) - 5} {incr i} {
+    for {set i 1} {$i < $opt(nodes)} {incr i} {
 	set app [new Application/Traffic/CBR]
 	$app set packetSize_ 100
 	$app set rate_ 100000
