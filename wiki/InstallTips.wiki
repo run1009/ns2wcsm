@@ -1,14 +1,20 @@
-#summary One-sentence summary of this page.
 #labels Featured,Phase-Deploy
+#Install Tips for ns2wcsm.
 
 = Introduction =
 
 Install Tips for ns2wcsm.
 
 
-= Details =
+= Steps =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+1. Copy the patch to {ns2 directory}/ns-2.31;
+
+2. Run the command(quote mark is not included): 
+{{{
+patch -Np1 < Ns2Centralized80216Mesh.patch
+}}}
+
+3. The simulation result is a file named "out". It can be parsed by [http://code.google.com/p/ns2wcsm/downloads/list *recover*] program.
+
+See also: http://jpingy.spaces.live.com/blog/cns!99DEA204AC0E5B6B!486.entry
