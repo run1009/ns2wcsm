@@ -1,5 +1,4 @@
 #labels Featured,Phase-Deploy
-#Install Tips for ns2wcsm.
 
 = Introduction =
 
